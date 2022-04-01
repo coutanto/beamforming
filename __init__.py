@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 __all__ = [
-    'beamforming'
+    "beamforming.py"
     ]
-
+from .beamforming import *
 from . import beamforming

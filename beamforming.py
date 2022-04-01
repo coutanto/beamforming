@@ -19,6 +19,31 @@ FLOAT_GPU='float32'
 
 __doc__="Module to compute beamforming using classical or music projection, largely inspired by covnet module by L. Seydoux, gpu porting by 0. Coutant"
 
+class Plane_wave_beamformer:
+    def  __init__(self):
+        self.dimension = 0 # number of slowness along 1 direction
+        self.slowness = None    # list of slowness values
+        self.slowness_grid = None # slowness grid as a meshgrid
+        self.beamformer = None  # multicolumn vector describing the reference wave we project on
+        self.beamformer_conj = None # conjugate version of above
+        self.phase_x = None # phase shift of the reference wave
+        self.phase_y = None
+        self.X_radial = None #coeff. used to performed radial/transverse beamforming on 2 components data
+        self.Y_radial = None
+        self.X_tang = None
+        self.Y_tang = None
+
+class Cylindrical_wave_beamformer:
+    def __init__(self):
+        self.dimension = 0 # number of slowness
+        self.slowness = None    # list of slowness values
+        self.phase_x = None # phase shift of the reference wave
+        self.phase_y = None
+        self.x0 = None # grid for source position
+        self.y0 = None
+        self.beamformer = None
+        self.beamformer_conj = None
+
 class Beam:
     def __init__(self, use_gpu=False):
         """
@@ -70,7 +95,7 @@ class Beam:
         self.dt = None      # time step
         self.time = None    #sample time of original data
         
-        # parameter of analysys
+        # parameter of analysis
         self.frequencies = None # list of frequencies for analysis
         self.xspec = None # 4D array of cross-spectra [time, freq, nstat, nstat]
         self.wtime = None   # time of moving windows
@@ -90,6 +115,9 @@ class Beam:
 
         self.time_id = None #current time index used for beamforming, refering to self.wtime
 
+        self.pw_bf = None #plane wave beamformer
+        self.cw_bf = None #cylindrical beamformer
+
 
     def __str__(self):
         """
@@ -103,6 +131,9 @@ class Beam:
         print('Beam object has the following members:\n')
         for key in self.__dict__.keys():
             print(key)
+
+
+
 # =============================================================================
 # =============================================================================
 #        set_receiver
@@ -193,7 +224,7 @@ class Beam:
             raise ValueError('You already set 2 components dataset')
 
         if 'a1section' in kwargs:
-            from .core import A1Section
+            from a1das.core import A1Section
             a1 = kwargs['a1section']
             if drange is not None:
                 dstart,dend = A1Section.index(drange=drange)
@@ -588,8 +619,73 @@ class Beam:
         #    cp.get_default_memory_pool().free_all_blocks()
 
         return freq_id
-    
-# =============================================================================
+
+        # =============================================================================
+        # =============================================================================
+        #           compute_cylindricwave_beamformer
+        # =============================================================================
+        # =============================================================================
+
+        def compute_cylindricwave_beamformer(self, x0, y0, frequency, slowness, flip=True):
+            """
+            ## Description:
+                Compute the set of slowness and delay that will be used for beam projection
+                Assume plane wave propagation: exp(1j*2*pi*freq*(Sx*x + Sy*y))
+            ## Input:
+                x,y: (float) source position in the same unit as position
+                frequency: (float) frequency in Hz
+                slowness_max: (float) plane wave is computed for Sx and Sy slowness varying between [-slowness_max,slowness_max]
+                dimension: (int) number of slowness values in the range
+                flip: (bool) flip phase (default = True)
+            """
+            from numpy import abs
+            if self.use_gpu:
+                import cupy as cp
+                CMPLX = CMPLX_GPU
+            else:
+                import numpy as cp
+                CMPLX = 'complex128'
+
+
+            # compute phase shift only if needed
+            if self.cw_bf is None:
+                self.cw_bf = Cylindrical_wave_beamformer()
+
+            self.cw_bf.slowness = slowness
+            self.cw_bf.x0 = x0
+            self.cw_bf.y0 = y0
+
+            # outer product of (u,v) = dot(u,transpose(v))
+            # ravel: return a 1D vector from a 2D matrix
+            # return matrix of Sx*x
+            for s,_ in enumerate(slowness):
+                self.cw_bf.phase_x[s] = cp.outer(slowness[s], self.x-x0)
+                # return matrix of Sy*y
+                self.cw_bf.phase_y[s] = cp.outer(slowness[s], self.y-y0)
+
+
+
+            freq_id = abs(self.frequency - frequency).argmin()
+            frequency = self.frequency[freq_id]
+
+            angular_frequency = 2 * np.pi * frequency
+            if flip:
+                angular_frequency *= -1
+            shape=(len(slowness), )
+            self.cw_bf.beamformer = cp.ndarray(())
+            self.beamformer = cp.exp(1j * angular_frequency * (self.phase_x + self.phase_y)).astype(CMPLX)
+            self.beamformer_conj = self.beamformer ** (-1)
+
+            # if has_cupy and clean_gpu:
+            #    x = None
+            #    y = None
+            #    phase_x = None
+            #    phase_y = None
+            #    cp.get_default_memory_pool().free_all_blocks()
+
+            return freq_id
+
+    # =============================================================================
 # =============================================================================
 #           compute_beam_projection
 # =============================================================================
@@ -610,7 +706,8 @@ class Beam:
         ## Return:
             nothing, Beam.beam is written
         """
-        from .logtable import waitbar
+        #from .logtable import waitbar
+
         if self.use_gpu:
             import cupy as cp
             has_cupy = True
