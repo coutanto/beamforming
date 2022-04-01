@@ -1,0 +1,2757 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>beamforming.beamforming API documentation</title>
+<meta name="description" content="Module to compute beamforming using classical or music projection, largely inspired by covnet module by L. Seydoux, gpu porting by 0. Coutant" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>beamforming.beamforming</code></h1>
+</header>
+<section id="section-intro">
+<p>Module to compute beamforming using classical or music projection, largely inspired by covnet module by L. Seydoux, gpu porting by 0. Coutant</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">#
+#
+# Module to compute beamforming, largely taken from covnet package by L. Seydoux
+# ported to gpu by O. Coutant using cupy
+# additional option adapted to DAS data by allowing a diagonal selection on cross-spectral matrix
+#
+#
+
+import numpy as np
+
+column_width = [28, 48]
+char_corner = &#39;-&#39;
+char_vline = &#39; &#39;
+char_line = &#39;-&#39;
+char_wait = &#39;|&#39;
+
+CMPLX_GPU=&#39;complex64&#39;
+FLOAT_GPU=&#39;float32&#39;
+
+__doc__=&#34;Module to compute beamforming using classical or music projection, largely inspired by covnet module by L. Seydoux, gpu porting by 0. Coutant&#34;
+
+class Beam:
+    def __init__(self, use_gpu=False):
+        &#34;&#34;&#34;
+        ## Description
+            Create a Beam instance needed to compute the beamforming
+
+        ## Input:
+            use_gpu: (bool) if True, attempt to use cupy
+
+        ## Example:
+            &gt;&gt;&gt; import numpy as np
+            &gt;&gt;&gt; x = np.array(list_of_positions_x)
+            &gt;&gt;&gt; y = np.array(list_of_positions_y)
+            &gt;&gt;&gt; beam = a1das.beamforming.Beam(use_gpu=True)
+            &gt;&gt;&gt; beam.set_receiver(x=x, y=y)
+            &gt;&gt;&gt; f=a1das.open(file)
+            &gt;&gt;&gt; a1 = f.read()
+            &gt;&gt;&gt; beam.set_data(a1section = a1)
+            &gt;&gt;&gt; times = beam.compute_crossspectral_matrix(duration,
+                                              freq_min,
+                                              freq_max)
+            &gt;&gt;&gt; freq = 10 #Hz
+            &gt;&gt;&gt; vmin = 0.1 #km/sec
+            &gt;&gt;&gt; freq_id = beam.compute_planewave_beamformer(freq,
+                                                slowness_max=1./vmin)
+            &gt;&gt;&gt; time_id = 0 #first time index in times
+            &gt;&gt;&gt; beam.compute_beam_projection(time_id,freq_id)
+            &gt;&gt;&gt; beam.pcolormesh(plt.gca(), cmap=&#34;RdYlBu_r&#34;)
+        &#34;&#34;&#34;
+        if use_gpu:
+            try:
+                import cupy
+                print(&#39;module cupy found, using gpu&#39;)
+                self.use_gpu = True
+            except:
+                print(&#39;gpu requested but cupy module is not available, pip install cupy ?&#39;)
+                self.use_gpu = False
+        else:
+            self.use_gpu = False
+        
+        
+        # original data
+        self.x = None           # x &amp; y position of stations
+        self.y = None
+        self.nstat = None       # number of stations
+        self.data = None        # one component data
+        self.data_X = None      # 2 components data
+        self.data_Y = None
+        self.dt = None      # time step
+        self.time = None    #sample time of original data
+        
+        # parameter of analysys
+        self.frequencies = None # list of frequencies for analysis
+        self.xspec = None # 4D array of cross-spectra [time, freq, nstat, nstat]
+        self.wtime = None   # time of moving windows
+        self.wlen = None    # duration (sec) of a moving window
+        self.dimension = None # number of slowness along 1 direction
+        self.slowness = None    # list of slowness values
+        self.slowness_grid = None # slowness grid as a meshgrid
+        self.beamformer = None  # multicolumn vector describing the reference wave we project on
+        self.beamformer_conj = None # conjugate version of above
+        self.beam = None    # result of beamforming
+        self.phase_x = None # phase shift of the reference wave
+        self.phase_y = None
+        self.X_radial = None #coeff. used to performed radial/transverse beamforming on 2 components data
+        self.Y_radial = None
+        self.X_tang = None
+        self.Y_tang = None
+
+        self.time_id = None #current time index used for beamforming, refering to self.wtime
+
+
+    def __str__(self):
+        &#34;&#34;&#34;
+        &#34;&#34;&#34;
+        print(&#39;Beam object has the following members:\n&#39;)
+        for key in self.__dict__.keys():
+            print(key)
+    def __repr__(self):
+        &#34;&#34;&#34;
+        &#34;&#34;&#34;
+        print(&#39;Beam object has the following members:\n&#39;)
+        for key in self.__dict__.keys():
+            print(key)
+# =============================================================================
+# =============================================================================
+#        set_receiver
+# =============================================================================
+# =============================================================================
+    def set_receiver(self, **kwargs):
+        &#34;&#34;&#34;
+        ## Description:
+            Set position parameters of stations
+
+        ## Input:
+            x, y: (float) ndarray of size [nstat]
+            or
+            xy: (float) ndarray of size [nstat x 2]
+        &#34;&#34;&#34;
+        if self.use_gpu:
+            import cupy as cp
+            FLOAT = FLOAT_GPU
+        else:
+            import numpy as cp
+            FLOAT = &#39;float64&#39;
+
+        if &#39;xy&#39; in kwargs:
+            xy = kwargs[&#39;xy&#39;]
+            self.x = cp.array(xy[0, :], dtype=FLOAT)
+            self.y = cp.array(xy[1, :], dtype=FLOAT)
+        elif &#39;x&#39; in kwargs and &#39;y&#39; in kwargs:
+            self.x = cp.array(kwargs[&#39;x&#39;], dtype=FLOAT)
+            self.y = cp.array(kwargs[&#39;y&#39;], dtype=FLOAT)
+        else:
+            raise ValueError(&#39;missing input arguments xy or x and y&#39;)
+        self.nstat = len(self.x)
+
+# =============================================================================
+# =============================================================================
+#        set_XY_data
+# =============================================================================
+# =============================================================================
+    def set_XY_data(self, data_X, data_Y, fs, trange=None):
+        &#34;&#34;&#34;
+        ## Description:
+            set horizontal 2 components data
+
+        ## Input:
+            data_X, data_Y: (float) 2D ndarray of size (nstat, ntime) containing seismic data
+            fs: (float) sampling rate
+            trange: (int) list or tuple (index_tim_min, index_time_max)
+        &#34;&#34;&#34;
+        if trange is not None:
+            tstart, tend = trange
+        else:
+            tstart = 0;
+            tend = -1
+        if data_X.shape != data_Y.shape:
+            raise ValueError(&#39; data_X and data_Y dimension mismatch&#39;)
+        if self.data is not None:
+            raise ValueError(&#39;You already set 1 component dataset&#39;)
+
+
+        self.data_X = data_X[tstart:tend]
+        self.data_Y = data_Y[tstart:tend]
+        self.dt = 1./fs
+        self.ntime = self.data.shape[1]
+        self.ntrace = self.data.shape[0]
+        self.time = np.linspace(0, self.ntime) * self.dt
+# =============================================================================
+# =============================================================================
+#           set_data
+# =============================================================================
+# =============================================================================
+    def set_data(self, drange=None, ddecim=1, trange=None, **kwargs):
+        &#34;&#34;&#34;
+        ## Description:
+        Set seismic data
+
+        ## Input from DAS data using A1Section object:
+            a1section: A1Section object
+            drange: [dmin, dmax] (float) tuple or list of distance range (default = None)
+            ddecim: (int) space decimation
+            trange: [tmin, tmax] (float) tuple or list of time range (default = None)
+
+        ## Input from float array
+            section: (float) 2D ndarray of size nstat x npts
+            trange: (int) list or tuple (index_tim_min, index_time_max)
+            fs: (float) sampling rate
+        &#34;&#34;&#34;
+        if self.data_X is not None or self.data_Y is not None:
+            raise ValueError(&#39;You already set 2 components dataset&#39;)
+
+        if &#39;a1section&#39; in kwargs:
+            from .core import A1Section
+            a1 = kwargs[&#39;a1section&#39;]
+            if drange is not None:
+                dstart,dend = A1Section.index(drange=drange)
+            else:
+                dstart=None; dend=None
+            if trange is not None:
+                tstart, tend = A1Section.index(trange=trange)
+            else:
+                tstart=None; tend=None
+            self.data = a1.data[dstart:dend:ddecim,tstart:tend]
+            self.dt = a1[&#39;dt&#39;]
+            self.time = a1[&#39;time&#39;][tstart:tend]
+            self.ntime = len(self.time)
+            self.ntrace = self.data.shape[0]
+
+        elif &#39;section&#39; in kwargs and &#39;fs&#39; in kwargs:
+            if trange is not None:
+                tstart, tend = trange
+            else:
+                tstart=None; tend=None
+            self.data = kwargs[&#39;section&#39;][:,tstart:tend]
+            self.dt = 1./kwargs[&#39;fs&#39;]
+            self.ntime = self.data.shape[1]
+            self.ntrace = self.data.shape[0]
+            self.time = np.arange(0,self.ntime)*self.dt
+
+        else:
+            raise ValueError(&#34;wrong input args, a1section or section AND dt&#34;)
+            
+# =============================================================================
+# =============================================================================
+#           compute_crossspectral_matrix
+# =============================================================================
+# =============================================================================
+
+    def compute_crossspectral_matrix(self, segment_duration_sec, freq_min, freq_max, step = 1., average=10, overlap=0.5, mx=None):
+        &#34;&#34;&#34;
+        ## Description
+            Compute the cross-spectral matrix on moving time window
+
+        ## Input for FFT computations
+            segment_duration: (float) time window length for analysis
+            step: (float) time step between two consecutive windows
+
+        ## Input for cross-spectral computations
+            freq_min: (float)
+            freq_max: (float)
+            average:  (int) cross spectrum computed over &#39;average&#39; time windows
+            overlap: (float) overlap between consecutive averaged windows
+            mx: (int) compute xspec on the mx first neighbors only, default=None, compute cross-spectrum on all neighbors
+
+        Note: numpy code source inspired or copied from covnet by leonard Seydoux
+        &#34;&#34;&#34;
+        from scipy.signal.windows  import hann
+        from scipy.linalg import circulant
+        from .logtable import waitbar
+
+        if self.use_gpu:
+            import cupy as cp
+            CMPLX = CMPLX_GPU
+            data = self.data.astype(&#39;float32&#39;)
+            has_cupy = True
+        else:
+            import numpy as cp
+            CMPLX = &#39;complex128&#39;
+            data = self.data
+            has_cupy = False
+
+        # Time windows
+        # set length argument for fft call
+        # force even length
+        len_seg = int(segment_duration_sec / self.dt)
+        if np.mod(len_seg,2) == 1:
+            len_seg = 2*int(np.floor(len_seg/2)+1)
+        nfft = len_seg
+        len_step = int(np.floor(len_seg * step))
+        times = self.time[:1 - len_seg:len_step]
+        n_windows = len(times)
+        self.wlen = len_seg*self.dt
+
+        # Frequency
+        n_frequencies = int(nfft/2+1) #see rfft doc
+        df = 1./(self.dt*nfft)
+        self.frequency = np.arange(0, n_frequencies)*df
+
+        # =========================================================================
+        # compute spectra
+        # =========================================================================
+        spectra_shape = self.ntrace, n_windows, n_frequencies
+        spectra = cp.zeros(spectra_shape, dtype=CMPLX)
+        wbar = waitbar(&#39;Spectra&#39;, self.ntrace)
+        data_gpu = cp.array(data)
+        hanning_gpu = cp.array(hann(len_seg))
+        for trace_id in range(0, self.ntrace):
+            wbar.progress(trace_id)
+            tr = data_gpu[trace_id]
+            for time_id in range(n_windows):
+                start = time_id * len_step
+                end = start + len_seg
+                segment = tr[start:end] * hanning_gpu
+                spectra[trace_id, time_id] = cp.fft.rfft(segment, n=nfft)
+                
+        #free unused memory in GPU, i.e. original data
+        if has_cupy:
+            data_gpu = None
+            hanning_gpu = None
+            tr = None
+            segment = None
+            cp.get_default_memory_pool().free_all_blocks()
+
+
+        # add a supplementary time step for later averaging
+        t_end = self.time[-1]
+        times = np.hstack((times, t_end))
+
+        # =========================================================================
+        # compute cross-spectral matrix
+        # =========================================================================
+
+        # select frequencies
+        freq_keep = (self.frequency &gt; freq_min) &amp; (self.frequency &lt; freq_max)
+        self.frequency = self.frequency[freq_keep]
+        n_frequencies = len(self.frequency)
+        spectra = spectra[..., freq_keep].copy()
+
+        # 
+        # spectra are average over time if requested
+        # set time averaging parameters
+        # 
+        if average&gt;n_windows:
+            average = n_windows
+        overlap = int(average * overlap)
+
+        # Times ??
+        t_end = times[-1]
+        times = times[:-1]
+        times = times[:1 - average:overlap]
+        self.wlen *= average
+        n_average = len(times)
+        #times = np.hstack((times, t_end))
+
+        # introduce a spatial extent for correlation computation
+        # this has a sense only when the network has a 1D regular spacing
+        if mx is not None:
+            c = np.zeros((self.ntrace,))
+            nx = int((mx-1)/2)
+            c[0:nx+1]=1.
+            c[-nx:]=1.
+            cc = cp.asarray(circulant(c))
+            cc = cc[:,:,None]
+        else:
+            cc=1.
+
+        # Initialization
+        xspec_shape = (n_average, self.ntrace, self.ntrace, n_frequencies)
+        xspec = cp.zeros(xspec_shape, dtype=CMPLX)
+        wbar = waitbar(&#39;Cross-spectra&#39;, n_average)
+        for wid in range(n_average):
+            #n_traces, n_windows, n_frequencies = spectra.shape
+            beg = overlap * wid
+            end = beg + average
+            spectra_tmp = spectra[:, beg:end, :].copy()
+
+            X = (spectra_tmp[:, None, 0, :] * cp.conj(spectra_tmp[:, 0, :]))*cc
+            for swid in range(1, average):
+                X += (spectra_tmp[:, None, swid, :] * cp.conj(spectra_tmp[:, swid, :]))*cc
+
+            xspec[wid] = X
+            wbar.progress(wid)
+
+        self.xspec = xspec.transpose([0, -1, 1, 2]).copy() #is copy() really necessary?
+
+        if has_cupy:
+            spectra_tmp = None
+            spectra = None
+            X = None
+            cc = None
+            xspec = None
+            cp.get_default_memory_pool().free_all_blocks()
+
+        self.wtime = times
+        
+# =============================================================================
+# =============================================================================
+#           compute_XY_crossspectral_matrix
+# =============================================================================
+# =============================================================================
+    def compute_XY_crossspectral_matrix(self, segment_duration_sec, freq_min, freq_max, step = 1., average=10, overlap=0.5, mx=None):
+        &#34;&#34;&#34;
+        ## Description
+            Compute the cross-spectral matrix on moving time window
+
+        ## Input for FFT computations
+            segment_duration: (float) time window length for analysis
+            step: (float) time step between two consecutive windows
+
+        ## Input for cross-spectral computations
+            freq_min: (float)
+            freq_max: (float)
+            average:  (int) cross spectrum computed over &#39;average&#39; time windows
+            overlap: (float)
+            mx: (int) compute xspec on the mx first neighbors only, default=None, compute cross-spectrum on all neighbors
+
+        Note: numpy code source inspired or copied from covnet by leonard Seydoux
+        &#34;&#34;&#34;
+        from scipy.signal import hanning
+        from scipy.linalg import circulant
+        from .logtable import waitbar
+
+        if self.use_gpu:
+            import cupy as cp
+            CMPLX = CMPLX_GPU
+            data = self.data.astype(&#39;float32&#39;)
+            has_cupy = True
+        else:
+            import numpy as cp
+            CMPLX = &#39;complex128&#39;
+            data = self.data
+            has_cupy = False
+
+        # Time windows
+        len_seg = int(segment_duration_sec / self.dt)
+        len_step = int(np.floor(len_seg * step))
+        times = self.time[:1 - len_seg:len_step]
+        n_windows = len(times)
+
+        # Frequency
+        # set length argument for fft call
+        # force even length
+        nfft = 2*int(np.floor(len_seg/2)+1)
+        len_seg = nfft
+        n_frequencies = int(nfft/2+1) #see rfft doc
+        df = 1./(self.dt*nfft)
+        self.frequency = np.arange(0, n_frequencies)*df
+
+        # =========================================================================
+        # compute spectra
+        # =========================================================================
+        spectra_shape = self.ntrace, n_windows, n_frequencies
+        spectra = cp.zeros(spectra_shape, dtype=CMPLX)
+        wbar = waitbar(&#39;Spectra&#39;, self.ntrace)
+        self.xspec=()
+        for i,data in enumerate(self.data_X, self.data_Y):
+            data_gpu = cp.array(data)
+            hanning_gpu = cp.array(hanning(len_seg))
+            for trace_id in range(0, self.ntrace):
+                wbar.progress(trace_id)
+                tr = data_gpu[trace_id]
+                for time_id in range(n_windows):
+                    start = time_id * len_step
+                    end = start + len_seg
+                    segment = tr[start:end] * hanning_gpu
+                    spectra[trace_id, time_id] = cp.fft.rfft(segment, n=nfft)
+            #free unused memory in GPU, i.e. original data
+            if has_cupy:
+                data_gpu = None
+                hanning_gpu = None
+                tr = None
+                segment = None
+                cp.get_default_memory_pool().free_all_blocks()
+
+
+            # add a supplementary time step for loop ending
+            t_end = self.time[-1]
+            times = np.hstack((times, t_end))
+
+            # =========================================================================
+            # compute cross-spectral matrix
+            # =========================================================================
+
+            # select frequencies
+            freq_keep = (self.frequency &gt; freq_min) &amp; (self.frequency &lt; freq_max)
+            self.frequency = self.frequency[freq_keep]
+            n_frequencies = len(self.frequency)
+            spectra = spectra[..., freq_keep].copy()
+
+            # set time averaging parameters
+            overlap = int(average * overlap)
+
+            # Times ??
+            t_end = times[-1]
+            times = times[:-1]
+            times = times[:1 - average:overlap]
+            n_average = len(times)
+            #times = np.hstack((times, t_end))
+
+            # introduce a spatial extent for correlation computation
+            # this has a sense only when the network has a 1D/2D regular grid
+            if mx is not None:
+                c = np.zeros((self.ntrace,))
+                nx = int((mx-1)/2)
+                c[0:nx+1]=1.
+                c[-nx:]=1.
+                cc = cp.asarray(circulant(c))
+                cc = cc[:,:,None]
+            else:
+                cc=1.
+
+            # Initialization
+            xspec_shape = (n_average, self.ntrace, self.ntrace, n_frequencies)
+            xspec = cp.zeros(xspec_shape, dtype=CMPLX)
+            wbar = waitbar(&#39;Covariance&#39;, n_average)
+            for wid in range(n_average):
+                #n_traces, n_windows, n_frequencies = spectra.shape
+                beg = overlap * wid
+                end = beg + average
+                spectra_tmp = spectra[:, beg:end, :].copy()
+
+                X = (spectra_tmp[:, None, 0, :] * cp.conj(spectra_tmp[:, 0, :]))*cc
+                for swid in range(1, average):
+                    X += (spectra_tmp[:, None, swid, :] * cp.conj(spectra_tmp[:, swid, :]))*cc
+
+                xspec[wid] = X
+                wbar.progress(wid)
+
+            self.xspec.append(xspec.transpose([0, -1, 1, 2]).copy()) #is copy() really necessary?
+
+        if has_cupy:
+            spectra_tmp = None
+            spectra = None
+            X = None
+            cc = None
+            xspec = None
+            cp.get_default_memory_pool().free_all_blocks()
+
+        self.wtime = times
+# =============================================================================
+# =============================================================================
+#           compute_planewave_beamformer
+# =============================================================================
+# =============================================================================
+
+    def compute_planewave_beamformer(self, frequency, slowness_max=0.1, dimension=100, flip = True,
+                                     clean_gpu=False):
+        &#34;&#34;&#34;
+        ## Description:
+            Compute the set of slowness and delay that will be used for beam projection
+            Assume plane wave propagation: exp(1j*2*pi*freq*(Sx*x + Sy*y))
+        ## Input:
+            frequency: (float) frequency in Hz
+            slowness_max: (float) plane wave is computed for Sx and Sy slowness varying between [-slowness_max,slowness_max]
+            dimension: (int) number of slowness values in the range
+            flip: (bool) flip phase (default = True)
+        &#34;&#34;&#34;
+        from numpy import abs
+        if self.use_gpu:
+            import cupy as cp
+            CMPLX = CMPLX_GPU
+        else:
+            import numpy as cp
+            CMPLX = &#39;complex128&#39;
+
+        #print(&#39;etat des variables&#39;,(&#39;x&#39; in locals()),(&#39;phase_x&#39; in locals()))
+
+        #compute phase shift only if needed
+        if dimension != self.dimension or slowness_max != self.slowness_max:
+            self.dimension = dimension
+            self.slowness_max = slowness_max
+            self.slowness = cp.linspace(-slowness_max, slowness_max, dimension)
+            self.slowness_grid = cp.meshgrid(self.slowness, self.slowness)
+            self.slowness_abs = cp.sqrt(self.slowness_grid[0].ravel()**2 + self.slowness_grid[1].ravel()**2)
+
+            # outer product of (u,v) = dot(u,transpose(v))
+            # ravel: return a 1D vector from a 2D matrix
+            # return matrix of Sx*x
+            self.phase_x = cp.outer(self.slowness_grid[0].ravel(), self.x)
+            # return matrix of Sy*y
+            self.phase_y = cp.outer(self.slowness_grid[1].ravel(), self.y)
+
+            # case of 2 component beamforming
+            if self.data_X is not None and self.data_Y is not None:
+                self.X_radial = self.slowness_grid[0].ravel()/self.slowness_abs
+                self.Y_radial = self.slowness_grid[1].ravel()/self.slowness_abs
+                self.X_tang = self.Y_radial
+                self.Y_tang = -self.X_radial
+
+        freq_id = abs(self.frequency - frequency).argmin()
+        frequency = self.frequency[freq_id]
+
+        angular_frequency = 2 * np.pi * frequency
+        if flip:
+            angular_frequency *= -1
+
+        self.beamformer = cp.exp(1j * angular_frequency * (self.phase_x + self.phase_y)).astype(CMPLX)
+        self.beamformer_conj = self.beamformer**(-1)
+
+        #if has_cupy and clean_gpu:
+        #    x = None
+        #    y = None
+        #    phase_x = None
+        #    phase_y = None
+        #    cp.get_default_memory_pool().free_all_blocks()
+
+        return freq_id
+    
+# =============================================================================
+# =============================================================================
+#           compute_beam_projection
+# =============================================================================
+# =============================================================================
+
+    def compute_beam_projection(self, time_id=0, freq_id=0, method=&#39;classic&#39;, epsilon=1e-10, rank=1, stack=False):
+        &#34;&#34;&#34;
+        ## Description:
+        Compute the projection of the cross-spectral matrix on a reference beam for a given time window and a given frequency
+
+        ## Input:
+            time_id: (int) time index for the cross-spectral matrix
+            freq_id: (int) frequency index for the cross -sptral matrix
+            method: (str) &#39;classic&#39; or &#39;music&#39; (default is classic)
+            epsilon: (float) threshold for music method, default is 1.e-10
+            rank: (int) keep rank singular values in svd decomposition
+            stack: (bool) stack projection between successive calls (default = False)
+        ## Return:
+            nothing, Beam.beam is written
+        &#34;&#34;&#34;
+        from .logtable import waitbar
+        if self.use_gpu:
+            import cupy as cp
+            has_cupy = True
+            from cupy.linalg import svd, inv
+        else:
+            import numpy as cp
+            has_cupy = False
+            from numpy.linalg import svd, inv
+
+        if method == &#39;classic&#39;:
+            if has_cupy:
+                #print(type(self.xspec),self.xspec.dtype)
+                tmp = self.beamformer_conj @ self.xspec[time_id,freq_id] @ self.beamformer.T
+                beam = cp.diag(tmp).real
+            else:
+                beam = cp.ndarray((self.dimension**2,))
+                #wbar = waitbar(&#39;Projection&#39;,self.dimension**2)
+                for s in range(self.dimension**2):
+                    beam[s] = (self.beamformer_conj[s, :].dot(self.xspec[time_id,freq_id].dot(self.beamformer[s, :]))).real
+                    #wbar.progress(s)
+
+        elif method == &#39;music&#39;:
+            eigenvectors, eigenvalues, _ = svd(self.xspec[time_id, freq_id])
+            eigenvalues[:rank] = 0.0
+            eigenvalues[rank:] = 1.0
+            eigenvalues = cp.diag(eigenvalues)
+            if has_cupy:
+                #eigenvectors = cp.array(eigenvectors)
+                xspec = eigenvectors @ eigenvalues @ cp.conj(eigenvectors.T)
+                tmp = self.beamformer_conj @ xspec @ self.beamformer.T
+                beam = cp.diag(tmp).real + epsilon
+                beam = 1 / cp.abs(beam)
+            else:
+                beam = cp.ndarray((self.dimension**2,))
+                xspec = eigenvectors @ eigenvalues @ cp.conj(eigenvectors.T)
+                for s in range(self.dimension ** 2):
+                    beam[s] = (self.beamformer_conj[s, :].dot(xspec.dot(self.beamformer[s, :])).real)
+                    beam[s] = 1 / cp.abs(beam[s] + epsilon)
+
+        elif method == &#39;mvdr&#39;:
+            if has_cupy:
+                xspec_inv = inv(self.xspec[time_id,freq_id]+cp.eye(self.ntrace)*0.01)
+                tmp = self.beamformer_conj @ xspec_inv @ self.beamformer.T
+                beam = cp.diag(tmp).real #+ epsilon
+                beam = 1 / cp.abs(beam)
+            else:
+                beam = cp.ndarray((self.dimension**2,))
+                xspec_inv = inv(self.xspec[time_id, freq_id]+cp.eye(self.ntrace)*0.01)
+                for s in range(self.dimension**2):
+                    beam[s] = 1./(self.beamformer_conj[s, :].dot(xspec_inv.dot(self.beamformer[s, :]))).real+epsilon
+
+        if stack and self.beam is not None:
+            self.beam += beam
+        else:
+            self.beam = beam
+        self.time_id = time_id
+# =============================================================================
+# =============================================================================
+#           compute_XY_beam_projection
+# =============================================================================
+# =============================================================================
+    def compute_XY_beam_projection(self, time_id=0, freq_id=0, method=&#39;classic&#39;, comp=&#39;radial&#39;, epsilon=1e-10, rank=1, stack=False):
+        &#34;&#34;&#34;
+        ## Description:
+        Compute the projection of the cross-spectral matrix on a reference beam for a given time window and a given frequency
+
+        ## Input:
+            time_id: (int) time index for the cross-spectral matrix
+            freq_id: (int) frequency index for the cross -sptral matrix
+            method: (str) &#39;classic&#39; or &#39;music&#39; (default is classic)
+            epsilon: (float) threshold for music method, default is 1.e-10
+            rank: (int) keep rank singular values in svd decomposition
+            stack: (bool) stack projection between successive calls (default = False)
+        ## Return:
+            nothing, Beam.beam is written
+        &#34;&#34;&#34;
+        if self.use_gpu:
+            import cupy as cp
+            has_cupy = True
+            from cupy.linalg import svd
+        else:
+            import numpy as cp
+            has_cupy = False
+            from numpy.linalg import svd
+
+        if comp == &#39;radial&#39;:
+            coefs = self.X_radial, self.Y_radial
+        else:
+            coefs = self.X_tang, self.Y_tang
+
+        beam = cp.zeros((self.dimension ** 2,))
+        if method == &#39;classic&#39;:
+            if has_cupy:
+                for i,cof in enumerate(coefs):
+                    tmp = (cof * self.beamformer_conj) @ self.xspec[i][time_id,freq_id] @ (cof * self.beamformer).T
+                    beam += cp.diag(tmp).real
+            else:
+                for s in range(self.dimension**2):
+                    for i,cof in enumerate(coefs):
+                        beam[s] += (
+                              (self.beamformer_conj[s, :]*cof[s]).dot(
+                               self.xspec[i][time_id,freq_id].dot(self.beamformer[s, :]*cof[s])
+                                                                       )
+                              ).real
+
+
+        elif method == &#39;music&#39;:
+            beam = cp.zeros((self.dimension ** 2,))
+            for i, cof in enumerate(coefs):
+                eigenvectors, eigenvalues, _ = svd(self.xspec[i][time_id, freq_id])
+                eigenvalues[:rank] = 0.0
+                eigenvalues[rank:] = 1.0
+                eigenvalues = cp.diag(eigenvalues)
+                if has_cupy:
+                    #eigenvectors = cp.array(eigenvectors)
+                    xspec = eigenvectors @ eigenvalues @ cp.conj(eigenvectors.T)
+                    tmp = (cof*self.beamformer_conj) @ xspec @ (cof*self.beamformer.T)
+                    beam += 1. / (cp.diag(tmp).real + epsilon)
+                else:
+                    xspec = eigenvectors @ eigenvalues @ cp.conj(eigenvectors.T)
+                    for s in range(self.dimension ** 2):
+                        beam[s] = ((cof[s]*self.beamformer_conj[s, :]).dot(xspec.dot(cof[s]*self.beamformer[s, :]))).real
+                        beam[s] = 1 / cp.abs(beam[s] + epsilon)
+
+
+
+        if stack and self.beam is not None:
+            self.beam += beam
+        else:
+            self.beam = beam
+        self.time_id = time_id
+# =============================================================================
+# =============================================================================
+#           usefull stuff
+# =============================================================================
+# =============================================================================
+
+    def copy(self):
+        &#34;&#34;&#34;
+
+        &#34;&#34;&#34;
+        newbeam = Beam()
+        for e in self.__dict__:
+            newbeam.__dict__[e] = self.__dict__[e]
+
+        return newbeam
+
+    def clear(self):
+        &#34;&#34;&#34;
+
+        &#34;&#34;&#34;
+        if self.use_gpu:
+            try:
+                import cupy as cp
+                for e in self.__dict__:
+                    self.__dict__[e] = None
+                cp.get_default_memory_pool().free_all_blocks()
+            except:
+                pass
+            
+# =============================================================================
+# =============================================================================
+#           pcolormesh
+# =============================================================================
+# =============================================================================
+    def pcolormesh(self, ax, colorbar=False, scale=True, **kwargs):
+        &#34;&#34;&#34;
+
+        &#34;&#34;&#34;
+        if self.use_gpu:
+            has_cupy = True
+        else:
+            has_cupy = False
+
+        import numpy as np
+        import matplotlib.pyplot as plt
+
+        if has_cupy:
+            beam = self.beam.get()
+            slowness = self.slowness.get()
+        else:
+            beam=self.beam
+            slowness = self.slowness
+
+        beam = np.reshape(beam, (self.dimension, self.dimension))
+        beam = np.rot90(beam, 2)
+        if scale:
+            beam = (beam - beam.min()) / (beam.max() - beam.min())
+            vmin=0.
+            vmax=1.
+        else:
+            vmin=beam.min()**2
+            vmax=beam.max()**2
+        kwargs = {**kwargs, **dict(rasterized=True, vmin=vmin, vmax=vmax)}
+        img = ax.pcolormesh(slowness, slowness, beam ** 2, shading=&#39;auto&#39;, **kwargs)
+        ax.set_aspect(&#39;equal&#39;)
+        xlim = ax.get_xlim()
+        ylim = ax.get_ylim()
+        grid_style = dict(lw=0.3, dashes=[6, 4], c=&#39;w&#39;)
+        ax.plot(2 * [0], xlim, **grid_style)
+        ax.plot(ylim, 2 * [0], **grid_style)
+        ax.plot(xlim, ylim, **grid_style)
+        ax.plot(xlim, [-y for y in ylim], **grid_style)
+        ax.set_xticks([xlim[0], xlim[0] / 2, 0, xlim[-1] / 2, xlim[-1]])
+        ax.set_yticks([ylim[0], ylim[0] / 2, 0, ylim[-1] / 2, ylim[-1]])
+        ax.set_title(&#39;[%.1f-%.1f]sec&#39; % (self.wtime[self.time_id], 
+                                           self.wtime[self.time_id]+self.wlen))
+        if colorbar:
+            plt.colorbar(mappable=img)
+
+# =============================================================================
+# =============================================================================
+#           compute_plane_wave_synthetic_crossspectral_matrix
+# =============================================================================
+# =============================================================================
+    def compute_plane_wave_synthetic_crossspectral_matrix(self, freq, slowness, azimuth,mx=None):
+        &#34;&#34;&#34;
+
+        :param freq:
+        :param slowness:
+        :param azimuth:
+        :return:
+        &#34;&#34;&#34;
+        if self.use_gpu:
+            try:  # cupy
+                import cupy as cp
+                from scipy.linalg import circulant
+            except:
+                import numpy as cp
+                from scipy.linalg import circulant
+        else:
+            import numpy as cp
+            from scipy.linalg import circulant
+            
+        # Phase
+        wavenumber = 2 * cp.pi * freq * slowness
+        azimuth = cp.radians(azimuth)
+        scalar_product = cp.sin(azimuth) * self.x + cp.cos(azimuth) * self.y
+    
+        # Wavefield
+        wavefield = cp.exp(-1j * wavenumber * scalar_product)
+
+        #spatial smoothing
+        if mx is not None:
+            c = np.zeros((self.ntrace,))
+            nx = int((mx - 1) / 2)
+            c[0:nx + 1] = 1.
+            c[-nx:] = 1.
+            cc = cp.asarray(circulant(c))
+            #cc = cc[:, :, None]
+        else:
+            cc = 1.
+        # cross-spectra
+        self.xspec = (wavefield * wavefield.conj()[:, None]) * cc
+        self.xspec = self.xspec[None, None, :,:]</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="beamforming.beamforming.Beam"><code class="flex name class">
+<span>class <span class="ident">Beam</span></span>
+<span>(</span><span>use_gpu=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><h2 id="description">Description</h2>
+<pre><code>Create a Beam instance needed to compute the beamforming
+</code></pre>
+<h2 id="input">Input:</h2>
+<pre><code>use_gpu: (bool) if True, attempt to use cupy
+</code></pre>
+<h2 id="example">Example:</h2>
+<pre><code>&gt;&gt;&gt; import numpy as np
+&gt;&gt;&gt; x = np.array(list_of_positions_x)
+&gt;&gt;&gt; y = np.array(list_of_positions_y)
+&gt;&gt;&gt; beam = a1das.beamforming.Beam(use_gpu=True)
+&gt;&gt;&gt; beam.set_receiver(x=x, y=y)
+&gt;&gt;&gt; f=a1das.open(file)
+&gt;&gt;&gt; a1 = f.read()
+&gt;&gt;&gt; beam.set_data(a1section = a1)
+&gt;&gt;&gt; times = beam.compute_crossspectral_matrix(duration,
+                                  freq_min,
+                                  freq_max)
+&gt;&gt;&gt; freq = 10 #Hz
+&gt;&gt;&gt; vmin = 0.1 #km/sec
+&gt;&gt;&gt; freq_id = beam.compute_planewave_beamformer(freq,
+                                    slowness_max=1./vmin)
+&gt;&gt;&gt; time_id = 0 #first time index in times
+&gt;&gt;&gt; beam.compute_beam_projection(time_id,freq_id)
+&gt;&gt;&gt; beam.pcolormesh(plt.gca(), cmap="RdYlBu_r")
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Beam:
+    def __init__(self, use_gpu=False):
+        &#34;&#34;&#34;
+        ## Description
+            Create a Beam instance needed to compute the beamforming
+
+        ## Input:
+            use_gpu: (bool) if True, attempt to use cupy
+
+        ## Example:
+            &gt;&gt;&gt; import numpy as np
+            &gt;&gt;&gt; x = np.array(list_of_positions_x)
+            &gt;&gt;&gt; y = np.array(list_of_positions_y)
+            &gt;&gt;&gt; beam = a1das.beamforming.Beam(use_gpu=True)
+            &gt;&gt;&gt; beam.set_receiver(x=x, y=y)
+            &gt;&gt;&gt; f=a1das.open(file)
+            &gt;&gt;&gt; a1 = f.read()
+            &gt;&gt;&gt; beam.set_data(a1section = a1)
+            &gt;&gt;&gt; times = beam.compute_crossspectral_matrix(duration,
+                                              freq_min,
+                                              freq_max)
+            &gt;&gt;&gt; freq = 10 #Hz
+            &gt;&gt;&gt; vmin = 0.1 #km/sec
+            &gt;&gt;&gt; freq_id = beam.compute_planewave_beamformer(freq,
+                                                slowness_max=1./vmin)
+            &gt;&gt;&gt; time_id = 0 #first time index in times
+            &gt;&gt;&gt; beam.compute_beam_projection(time_id,freq_id)
+            &gt;&gt;&gt; beam.pcolormesh(plt.gca(), cmap=&#34;RdYlBu_r&#34;)
+        &#34;&#34;&#34;
+        if use_gpu:
+            try:
+                import cupy
+                print(&#39;module cupy found, using gpu&#39;)
+                self.use_gpu = True
+            except:
+                print(&#39;gpu requested but cupy module is not available, pip install cupy ?&#39;)
+                self.use_gpu = False
+        else:
+            self.use_gpu = False
+        
+        
+        # original data
+        self.x = None           # x &amp; y position of stations
+        self.y = None
+        self.nstat = None       # number of stations
+        self.data = None        # one component data
+        self.data_X = None      # 2 components data
+        self.data_Y = None
+        self.dt = None      # time step
+        self.time = None    #sample time of original data
+        
+        # parameter of analysys
+        self.frequencies = None # list of frequencies for analysis
+        self.xspec = None # 4D array of cross-spectra [time, freq, nstat, nstat]
+        self.wtime = None   # time of moving windows
+        self.wlen = None    # duration (sec) of a moving window
+        self.dimension = None # number of slowness along 1 direction
+        self.slowness = None    # list of slowness values
+        self.slowness_grid = None # slowness grid as a meshgrid
+        self.beamformer = None  # multicolumn vector describing the reference wave we project on
+        self.beamformer_conj = None # conjugate version of above
+        self.beam = None    # result of beamforming
+        self.phase_x = None # phase shift of the reference wave
+        self.phase_y = None
+        self.X_radial = None #coeff. used to performed radial/transverse beamforming on 2 components data
+        self.Y_radial = None
+        self.X_tang = None
+        self.Y_tang = None
+
+        self.time_id = None #current time index used for beamforming, refering to self.wtime
+
+
+    def __str__(self):
+        &#34;&#34;&#34;
+        &#34;&#34;&#34;
+        print(&#39;Beam object has the following members:\n&#39;)
+        for key in self.__dict__.keys():
+            print(key)
+    def __repr__(self):
+        &#34;&#34;&#34;
+        &#34;&#34;&#34;
+        print(&#39;Beam object has the following members:\n&#39;)
+        for key in self.__dict__.keys():
+            print(key)
+# =============================================================================
+# =============================================================================
+#        set_receiver
+# =============================================================================
+# =============================================================================
+    def set_receiver(self, **kwargs):
+        &#34;&#34;&#34;
+        ## Description:
+            Set position parameters of stations
+
+        ## Input:
+            x, y: (float) ndarray of size [nstat]
+            or
+            xy: (float) ndarray of size [nstat x 2]
+        &#34;&#34;&#34;
+        if self.use_gpu:
+            import cupy as cp
+            FLOAT = FLOAT_GPU
+        else:
+            import numpy as cp
+            FLOAT = &#39;float64&#39;
+
+        if &#39;xy&#39; in kwargs:
+            xy = kwargs[&#39;xy&#39;]
+            self.x = cp.array(xy[0, :], dtype=FLOAT)
+            self.y = cp.array(xy[1, :], dtype=FLOAT)
+        elif &#39;x&#39; in kwargs and &#39;y&#39; in kwargs:
+            self.x = cp.array(kwargs[&#39;x&#39;], dtype=FLOAT)
+            self.y = cp.array(kwargs[&#39;y&#39;], dtype=FLOAT)
+        else:
+            raise ValueError(&#39;missing input arguments xy or x and y&#39;)
+        self.nstat = len(self.x)
+
+# =============================================================================
+# =============================================================================
+#        set_XY_data
+# =============================================================================
+# =============================================================================
+    def set_XY_data(self, data_X, data_Y, fs, trange=None):
+        &#34;&#34;&#34;
+        ## Description:
+            set horizontal 2 components data
+
+        ## Input:
+            data_X, data_Y: (float) 2D ndarray of size (nstat, ntime) containing seismic data
+            fs: (float) sampling rate
+            trange: (int) list or tuple (index_tim_min, index_time_max)
+        &#34;&#34;&#34;
+        if trange is not None:
+            tstart, tend = trange
+        else:
+            tstart = 0;
+            tend = -1
+        if data_X.shape != data_Y.shape:
+            raise ValueError(&#39; data_X and data_Y dimension mismatch&#39;)
+        if self.data is not None:
+            raise ValueError(&#39;You already set 1 component dataset&#39;)
+
+
+        self.data_X = data_X[tstart:tend]
+        self.data_Y = data_Y[tstart:tend]
+        self.dt = 1./fs
+        self.ntime = self.data.shape[1]
+        self.ntrace = self.data.shape[0]
+        self.time = np.linspace(0, self.ntime) * self.dt
+# =============================================================================
+# =============================================================================
+#           set_data
+# =============================================================================
+# =============================================================================
+    def set_data(self, drange=None, ddecim=1, trange=None, **kwargs):
+        &#34;&#34;&#34;
+        ## Description:
+        Set seismic data
+
+        ## Input from DAS data using A1Section object:
+            a1section: A1Section object
+            drange: [dmin, dmax] (float) tuple or list of distance range (default = None)
+            ddecim: (int) space decimation
+            trange: [tmin, tmax] (float) tuple or list of time range (default = None)
+
+        ## Input from float array
+            section: (float) 2D ndarray of size nstat x npts
+            trange: (int) list or tuple (index_tim_min, index_time_max)
+            fs: (float) sampling rate
+        &#34;&#34;&#34;
+        if self.data_X is not None or self.data_Y is not None:
+            raise ValueError(&#39;You already set 2 components dataset&#39;)
+
+        if &#39;a1section&#39; in kwargs:
+            from .core import A1Section
+            a1 = kwargs[&#39;a1section&#39;]
+            if drange is not None:
+                dstart,dend = A1Section.index(drange=drange)
+            else:
+                dstart=None; dend=None
+            if trange is not None:
+                tstart, tend = A1Section.index(trange=trange)
+            else:
+                tstart=None; tend=None
+            self.data = a1.data[dstart:dend:ddecim,tstart:tend]
+            self.dt = a1[&#39;dt&#39;]
+            self.time = a1[&#39;time&#39;][tstart:tend]
+            self.ntime = len(self.time)
+            self.ntrace = self.data.shape[0]
+
+        elif &#39;section&#39; in kwargs and &#39;fs&#39; in kwargs:
+            if trange is not None:
+                tstart, tend = trange
+            else:
+                tstart=None; tend=None
+            self.data = kwargs[&#39;section&#39;][:,tstart:tend]
+            self.dt = 1./kwargs[&#39;fs&#39;]
+            self.ntime = self.data.shape[1]
+            self.ntrace = self.data.shape[0]
+            self.time = np.arange(0,self.ntime)*self.dt
+
+        else:
+            raise ValueError(&#34;wrong input args, a1section or section AND dt&#34;)
+            
+# =============================================================================
+# =============================================================================
+#           compute_crossspectral_matrix
+# =============================================================================
+# =============================================================================
+
+    def compute_crossspectral_matrix(self, segment_duration_sec, freq_min, freq_max, step = 1., average=10, overlap=0.5, mx=None):
+        &#34;&#34;&#34;
+        ## Description
+            Compute the cross-spectral matrix on moving time window
+
+        ## Input for FFT computations
+            segment_duration: (float) time window length for analysis
+            step: (float) time step between two consecutive windows
+
+        ## Input for cross-spectral computations
+            freq_min: (float)
+            freq_max: (float)
+            average:  (int) cross spectrum computed over &#39;average&#39; time windows
+            overlap: (float) overlap between consecutive averaged windows
+            mx: (int) compute xspec on the mx first neighbors only, default=None, compute cross-spectrum on all neighbors
+
+        Note: numpy code source inspired or copied from covnet by leonard Seydoux
+        &#34;&#34;&#34;
+        from scipy.signal.windows  import hann
+        from scipy.linalg import circulant
+        from .logtable import waitbar
+
+        if self.use_gpu:
+            import cupy as cp
+            CMPLX = CMPLX_GPU
+            data = self.data.astype(&#39;float32&#39;)
+            has_cupy = True
+        else:
+            import numpy as cp
+            CMPLX = &#39;complex128&#39;
+            data = self.data
+            has_cupy = False
+
+        # Time windows
+        # set length argument for fft call
+        # force even length
+        len_seg = int(segment_duration_sec / self.dt)
+        if np.mod(len_seg,2) == 1:
+            len_seg = 2*int(np.floor(len_seg/2)+1)
+        nfft = len_seg
+        len_step = int(np.floor(len_seg * step))
+        times = self.time[:1 - len_seg:len_step]
+        n_windows = len(times)
+        self.wlen = len_seg*self.dt
+
+        # Frequency
+        n_frequencies = int(nfft/2+1) #see rfft doc
+        df = 1./(self.dt*nfft)
+        self.frequency = np.arange(0, n_frequencies)*df
+
+        # =========================================================================
+        # compute spectra
+        # =========================================================================
+        spectra_shape = self.ntrace, n_windows, n_frequencies
+        spectra = cp.zeros(spectra_shape, dtype=CMPLX)
+        wbar = waitbar(&#39;Spectra&#39;, self.ntrace)
+        data_gpu = cp.array(data)
+        hanning_gpu = cp.array(hann(len_seg))
+        for trace_id in range(0, self.ntrace):
+            wbar.progress(trace_id)
+            tr = data_gpu[trace_id]
+            for time_id in range(n_windows):
+                start = time_id * len_step
+                end = start + len_seg
+                segment = tr[start:end] * hanning_gpu
+                spectra[trace_id, time_id] = cp.fft.rfft(segment, n=nfft)
+                
+        #free unused memory in GPU, i.e. original data
+        if has_cupy:
+            data_gpu = None
+            hanning_gpu = None
+            tr = None
+            segment = None
+            cp.get_default_memory_pool().free_all_blocks()
+
+
+        # add a supplementary time step for later averaging
+        t_end = self.time[-1]
+        times = np.hstack((times, t_end))
+
+        # =========================================================================
+        # compute cross-spectral matrix
+        # =========================================================================
+
+        # select frequencies
+        freq_keep = (self.frequency &gt; freq_min) &amp; (self.frequency &lt; freq_max)
+        self.frequency = self.frequency[freq_keep]
+        n_frequencies = len(self.frequency)
+        spectra = spectra[..., freq_keep].copy()
+
+        # 
+        # spectra are average over time if requested
+        # set time averaging parameters
+        # 
+        if average&gt;n_windows:
+            average = n_windows
+        overlap = int(average * overlap)
+
+        # Times ??
+        t_end = times[-1]
+        times = times[:-1]
+        times = times[:1 - average:overlap]
+        self.wlen *= average
+        n_average = len(times)
+        #times = np.hstack((times, t_end))
+
+        # introduce a spatial extent for correlation computation
+        # this has a sense only when the network has a 1D regular spacing
+        if mx is not None:
+            c = np.zeros((self.ntrace,))
+            nx = int((mx-1)/2)
+            c[0:nx+1]=1.
+            c[-nx:]=1.
+            cc = cp.asarray(circulant(c))
+            cc = cc[:,:,None]
+        else:
+            cc=1.
+
+        # Initialization
+        xspec_shape = (n_average, self.ntrace, self.ntrace, n_frequencies)
+        xspec = cp.zeros(xspec_shape, dtype=CMPLX)
+        wbar = waitbar(&#39;Cross-spectra&#39;, n_average)
+        for wid in range(n_average):
+            #n_traces, n_windows, n_frequencies = spectra.shape
+            beg = overlap * wid
+            end = beg + average
+            spectra_tmp = spectra[:, beg:end, :].copy()
+
+            X = (spectra_tmp[:, None, 0, :] * cp.conj(spectra_tmp[:, 0, :]))*cc
+            for swid in range(1, average):
+                X += (spectra_tmp[:, None, swid, :] * cp.conj(spectra_tmp[:, swid, :]))*cc
+
+            xspec[wid] = X
+            wbar.progress(wid)
+
+        self.xspec = xspec.transpose([0, -1, 1, 2]).copy() #is copy() really necessary?
+
+        if has_cupy:
+            spectra_tmp = None
+            spectra = None
+            X = None
+            cc = None
+            xspec = None
+            cp.get_default_memory_pool().free_all_blocks()
+
+        self.wtime = times
+        
+# =============================================================================
+# =============================================================================
+#           compute_XY_crossspectral_matrix
+# =============================================================================
+# =============================================================================
+    def compute_XY_crossspectral_matrix(self, segment_duration_sec, freq_min, freq_max, step = 1., average=10, overlap=0.5, mx=None):
+        &#34;&#34;&#34;
+        ## Description
+            Compute the cross-spectral matrix on moving time window
+
+        ## Input for FFT computations
+            segment_duration: (float) time window length for analysis
+            step: (float) time step between two consecutive windows
+
+        ## Input for cross-spectral computations
+            freq_min: (float)
+            freq_max: (float)
+            average:  (int) cross spectrum computed over &#39;average&#39; time windows
+            overlap: (float)
+            mx: (int) compute xspec on the mx first neighbors only, default=None, compute cross-spectrum on all neighbors
+
+        Note: numpy code source inspired or copied from covnet by leonard Seydoux
+        &#34;&#34;&#34;
+        from scipy.signal import hanning
+        from scipy.linalg import circulant
+        from .logtable import waitbar
+
+        if self.use_gpu:
+            import cupy as cp
+            CMPLX = CMPLX_GPU
+            data = self.data.astype(&#39;float32&#39;)
+            has_cupy = True
+        else:
+            import numpy as cp
+            CMPLX = &#39;complex128&#39;
+            data = self.data
+            has_cupy = False
+
+        # Time windows
+        len_seg = int(segment_duration_sec / self.dt)
+        len_step = int(np.floor(len_seg * step))
+        times = self.time[:1 - len_seg:len_step]
+        n_windows = len(times)
+
+        # Frequency
+        # set length argument for fft call
+        # force even length
+        nfft = 2*int(np.floor(len_seg/2)+1)
+        len_seg = nfft
+        n_frequencies = int(nfft/2+1) #see rfft doc
+        df = 1./(self.dt*nfft)
+        self.frequency = np.arange(0, n_frequencies)*df
+
+        # =========================================================================
+        # compute spectra
+        # =========================================================================
+        spectra_shape = self.ntrace, n_windows, n_frequencies
+        spectra = cp.zeros(spectra_shape, dtype=CMPLX)
+        wbar = waitbar(&#39;Spectra&#39;, self.ntrace)
+        self.xspec=()
+        for i,data in enumerate(self.data_X, self.data_Y):
+            data_gpu = cp.array(data)
+            hanning_gpu = cp.array(hanning(len_seg))
+            for trace_id in range(0, self.ntrace):
+                wbar.progress(trace_id)
+                tr = data_gpu[trace_id]
+                for time_id in range(n_windows):
+                    start = time_id * len_step
+                    end = start + len_seg
+                    segment = tr[start:end] * hanning_gpu
+                    spectra[trace_id, time_id] = cp.fft.rfft(segment, n=nfft)
+            #free unused memory in GPU, i.e. original data
+            if has_cupy:
+                data_gpu = None
+                hanning_gpu = None
+                tr = None
+                segment = None
+                cp.get_default_memory_pool().free_all_blocks()
+
+
+            # add a supplementary time step for loop ending
+            t_end = self.time[-1]
+            times = np.hstack((times, t_end))
+
+            # =========================================================================
+            # compute cross-spectral matrix
+            # =========================================================================
+
+            # select frequencies
+            freq_keep = (self.frequency &gt; freq_min) &amp; (self.frequency &lt; freq_max)
+            self.frequency = self.frequency[freq_keep]
+            n_frequencies = len(self.frequency)
+            spectra = spectra[..., freq_keep].copy()
+
+            # set time averaging parameters
+            overlap = int(average * overlap)
+
+            # Times ??
+            t_end = times[-1]
+            times = times[:-1]
+            times = times[:1 - average:overlap]
+            n_average = len(times)
+            #times = np.hstack((times, t_end))
+
+            # introduce a spatial extent for correlation computation
+            # this has a sense only when the network has a 1D/2D regular grid
+            if mx is not None:
+                c = np.zeros((self.ntrace,))
+                nx = int((mx-1)/2)
+                c[0:nx+1]=1.
+                c[-nx:]=1.
+                cc = cp.asarray(circulant(c))
+                cc = cc[:,:,None]
+            else:
+                cc=1.
+
+            # Initialization
+            xspec_shape = (n_average, self.ntrace, self.ntrace, n_frequencies)
+            xspec = cp.zeros(xspec_shape, dtype=CMPLX)
+            wbar = waitbar(&#39;Covariance&#39;, n_average)
+            for wid in range(n_average):
+                #n_traces, n_windows, n_frequencies = spectra.shape
+                beg = overlap * wid
+                end = beg + average
+                spectra_tmp = spectra[:, beg:end, :].copy()
+
+                X = (spectra_tmp[:, None, 0, :] * cp.conj(spectra_tmp[:, 0, :]))*cc
+                for swid in range(1, average):
+                    X += (spectra_tmp[:, None, swid, :] * cp.conj(spectra_tmp[:, swid, :]))*cc
+
+                xspec[wid] = X
+                wbar.progress(wid)
+
+            self.xspec.append(xspec.transpose([0, -1, 1, 2]).copy()) #is copy() really necessary?
+
+        if has_cupy:
+            spectra_tmp = None
+            spectra = None
+            X = None
+            cc = None
+            xspec = None
+            cp.get_default_memory_pool().free_all_blocks()
+
+        self.wtime = times
+# =============================================================================
+# =============================================================================
+#           compute_planewave_beamformer
+# =============================================================================
+# =============================================================================
+
+    def compute_planewave_beamformer(self, frequency, slowness_max=0.1, dimension=100, flip = True,
+                                     clean_gpu=False):
+        &#34;&#34;&#34;
+        ## Description:
+            Compute the set of slowness and delay that will be used for beam projection
+            Assume plane wave propagation: exp(1j*2*pi*freq*(Sx*x + Sy*y))
+        ## Input:
+            frequency: (float) frequency in Hz
+            slowness_max: (float) plane wave is computed for Sx and Sy slowness varying between [-slowness_max,slowness_max]
+            dimension: (int) number of slowness values in the range
+            flip: (bool) flip phase (default = True)
+        &#34;&#34;&#34;
+        from numpy import abs
+        if self.use_gpu:
+            import cupy as cp
+            CMPLX = CMPLX_GPU
+        else:
+            import numpy as cp
+            CMPLX = &#39;complex128&#39;
+
+        #print(&#39;etat des variables&#39;,(&#39;x&#39; in locals()),(&#39;phase_x&#39; in locals()))
+
+        #compute phase shift only if needed
+        if dimension != self.dimension or slowness_max != self.slowness_max:
+            self.dimension = dimension
+            self.slowness_max = slowness_max
+            self.slowness = cp.linspace(-slowness_max, slowness_max, dimension)
+            self.slowness_grid = cp.meshgrid(self.slowness, self.slowness)
+            self.slowness_abs = cp.sqrt(self.slowness_grid[0].ravel()**2 + self.slowness_grid[1].ravel()**2)
+
+            # outer product of (u,v) = dot(u,transpose(v))
+            # ravel: return a 1D vector from a 2D matrix
+            # return matrix of Sx*x
+            self.phase_x = cp.outer(self.slowness_grid[0].ravel(), self.x)
+            # return matrix of Sy*y
+            self.phase_y = cp.outer(self.slowness_grid[1].ravel(), self.y)
+
+            # case of 2 component beamforming
+            if self.data_X is not None and self.data_Y is not None:
+                self.X_radial = self.slowness_grid[0].ravel()/self.slowness_abs
+                self.Y_radial = self.slowness_grid[1].ravel()/self.slowness_abs
+                self.X_tang = self.Y_radial
+                self.Y_tang = -self.X_radial
+
+        freq_id = abs(self.frequency - frequency).argmin()
+        frequency = self.frequency[freq_id]
+
+        angular_frequency = 2 * np.pi * frequency
+        if flip:
+            angular_frequency *= -1
+
+        self.beamformer = cp.exp(1j * angular_frequency * (self.phase_x + self.phase_y)).astype(CMPLX)
+        self.beamformer_conj = self.beamformer**(-1)
+
+        #if has_cupy and clean_gpu:
+        #    x = None
+        #    y = None
+        #    phase_x = None
+        #    phase_y = None
+        #    cp.get_default_memory_pool().free_all_blocks()
+
+        return freq_id
+    
+# =============================================================================
+# =============================================================================
+#           compute_beam_projection
+# =============================================================================
+# =============================================================================
+
+    def compute_beam_projection(self, time_id=0, freq_id=0, method=&#39;classic&#39;, epsilon=1e-10, rank=1, stack=False):
+        &#34;&#34;&#34;
+        ## Description:
+        Compute the projection of the cross-spectral matrix on a reference beam for a given time window and a given frequency
+
+        ## Input:
+            time_id: (int) time index for the cross-spectral matrix
+            freq_id: (int) frequency index for the cross -sptral matrix
+            method: (str) &#39;classic&#39; or &#39;music&#39; (default is classic)
+            epsilon: (float) threshold for music method, default is 1.e-10
+            rank: (int) keep rank singular values in svd decomposition
+            stack: (bool) stack projection between successive calls (default = False)
+        ## Return:
+            nothing, Beam.beam is written
+        &#34;&#34;&#34;
+        from .logtable import waitbar
+        if self.use_gpu:
+            import cupy as cp
+            has_cupy = True
+            from cupy.linalg import svd, inv
+        else:
+            import numpy as cp
+            has_cupy = False
+            from numpy.linalg import svd, inv
+
+        if method == &#39;classic&#39;:
+            if has_cupy:
+                #print(type(self.xspec),self.xspec.dtype)
+                tmp = self.beamformer_conj @ self.xspec[time_id,freq_id] @ self.beamformer.T
+                beam = cp.diag(tmp).real
+            else:
+                beam = cp.ndarray((self.dimension**2,))
+                #wbar = waitbar(&#39;Projection&#39;,self.dimension**2)
+                for s in range(self.dimension**2):
+                    beam[s] = (self.beamformer_conj[s, :].dot(self.xspec[time_id,freq_id].dot(self.beamformer[s, :]))).real
+                    #wbar.progress(s)
+
+        elif method == &#39;music&#39;:
+            eigenvectors, eigenvalues, _ = svd(self.xspec[time_id, freq_id])
+            eigenvalues[:rank] = 0.0
+            eigenvalues[rank:] = 1.0
+            eigenvalues = cp.diag(eigenvalues)
+            if has_cupy:
+                #eigenvectors = cp.array(eigenvectors)
+                xspec = eigenvectors @ eigenvalues @ cp.conj(eigenvectors.T)
+                tmp = self.beamformer_conj @ xspec @ self.beamformer.T
+                beam = cp.diag(tmp).real + epsilon
+                beam = 1 / cp.abs(beam)
+            else:
+                beam = cp.ndarray((self.dimension**2,))
+                xspec = eigenvectors @ eigenvalues @ cp.conj(eigenvectors.T)
+                for s in range(self.dimension ** 2):
+                    beam[s] = (self.beamformer_conj[s, :].dot(xspec.dot(self.beamformer[s, :])).real)
+                    beam[s] = 1 / cp.abs(beam[s] + epsilon)
+
+        elif method == &#39;mvdr&#39;:
+            if has_cupy:
+                xspec_inv = inv(self.xspec[time_id,freq_id]+cp.eye(self.ntrace)*0.01)
+                tmp = self.beamformer_conj @ xspec_inv @ self.beamformer.T
+                beam = cp.diag(tmp).real #+ epsilon
+                beam = 1 / cp.abs(beam)
+            else:
+                beam = cp.ndarray((self.dimension**2,))
+                xspec_inv = inv(self.xspec[time_id, freq_id]+cp.eye(self.ntrace)*0.01)
+                for s in range(self.dimension**2):
+                    beam[s] = 1./(self.beamformer_conj[s, :].dot(xspec_inv.dot(self.beamformer[s, :]))).real+epsilon
+
+        if stack and self.beam is not None:
+            self.beam += beam
+        else:
+            self.beam = beam
+        self.time_id = time_id
+# =============================================================================
+# =============================================================================
+#           compute_XY_beam_projection
+# =============================================================================
+# =============================================================================
+    def compute_XY_beam_projection(self, time_id=0, freq_id=0, method=&#39;classic&#39;, comp=&#39;radial&#39;, epsilon=1e-10, rank=1, stack=False):
+        &#34;&#34;&#34;
+        ## Description:
+        Compute the projection of the cross-spectral matrix on a reference beam for a given time window and a given frequency
+
+        ## Input:
+            time_id: (int) time index for the cross-spectral matrix
+            freq_id: (int) frequency index for the cross -sptral matrix
+            method: (str) &#39;classic&#39; or &#39;music&#39; (default is classic)
+            epsilon: (float) threshold for music method, default is 1.e-10
+            rank: (int) keep rank singular values in svd decomposition
+            stack: (bool) stack projection between successive calls (default = False)
+        ## Return:
+            nothing, Beam.beam is written
+        &#34;&#34;&#34;
+        if self.use_gpu:
+            import cupy as cp
+            has_cupy = True
+            from cupy.linalg import svd
+        else:
+            import numpy as cp
+            has_cupy = False
+            from numpy.linalg import svd
+
+        if comp == &#39;radial&#39;:
+            coefs = self.X_radial, self.Y_radial
+        else:
+            coefs = self.X_tang, self.Y_tang
+
+        beam = cp.zeros((self.dimension ** 2,))
+        if method == &#39;classic&#39;:
+            if has_cupy:
+                for i,cof in enumerate(coefs):
+                    tmp = (cof * self.beamformer_conj) @ self.xspec[i][time_id,freq_id] @ (cof * self.beamformer).T
+                    beam += cp.diag(tmp).real
+            else:
+                for s in range(self.dimension**2):
+                    for i,cof in enumerate(coefs):
+                        beam[s] += (
+                              (self.beamformer_conj[s, :]*cof[s]).dot(
+                               self.xspec[i][time_id,freq_id].dot(self.beamformer[s, :]*cof[s])
+                                                                       )
+                              ).real
+
+
+        elif method == &#39;music&#39;:
+            beam = cp.zeros((self.dimension ** 2,))
+            for i, cof in enumerate(coefs):
+                eigenvectors, eigenvalues, _ = svd(self.xspec[i][time_id, freq_id])
+                eigenvalues[:rank] = 0.0
+                eigenvalues[rank:] = 1.0
+                eigenvalues = cp.diag(eigenvalues)
+                if has_cupy:
+                    #eigenvectors = cp.array(eigenvectors)
+                    xspec = eigenvectors @ eigenvalues @ cp.conj(eigenvectors.T)
+                    tmp = (cof*self.beamformer_conj) @ xspec @ (cof*self.beamformer.T)
+                    beam += 1. / (cp.diag(tmp).real + epsilon)
+                else:
+                    xspec = eigenvectors @ eigenvalues @ cp.conj(eigenvectors.T)
+                    for s in range(self.dimension ** 2):
+                        beam[s] = ((cof[s]*self.beamformer_conj[s, :]).dot(xspec.dot(cof[s]*self.beamformer[s, :]))).real
+                        beam[s] = 1 / cp.abs(beam[s] + epsilon)
+
+
+
+        if stack and self.beam is not None:
+            self.beam += beam
+        else:
+            self.beam = beam
+        self.time_id = time_id
+# =============================================================================
+# =============================================================================
+#           usefull stuff
+# =============================================================================
+# =============================================================================
+
+    def copy(self):
+        &#34;&#34;&#34;
+
+        &#34;&#34;&#34;
+        newbeam = Beam()
+        for e in self.__dict__:
+            newbeam.__dict__[e] = self.__dict__[e]
+
+        return newbeam
+
+    def clear(self):
+        &#34;&#34;&#34;
+
+        &#34;&#34;&#34;
+        if self.use_gpu:
+            try:
+                import cupy as cp
+                for e in self.__dict__:
+                    self.__dict__[e] = None
+                cp.get_default_memory_pool().free_all_blocks()
+            except:
+                pass
+            
+# =============================================================================
+# =============================================================================
+#           pcolormesh
+# =============================================================================
+# =============================================================================
+    def pcolormesh(self, ax, colorbar=False, scale=True, **kwargs):
+        &#34;&#34;&#34;
+
+        &#34;&#34;&#34;
+        if self.use_gpu:
+            has_cupy = True
+        else:
+            has_cupy = False
+
+        import numpy as np
+        import matplotlib.pyplot as plt
+
+        if has_cupy:
+            beam = self.beam.get()
+            slowness = self.slowness.get()
+        else:
+            beam=self.beam
+            slowness = self.slowness
+
+        beam = np.reshape(beam, (self.dimension, self.dimension))
+        beam = np.rot90(beam, 2)
+        if scale:
+            beam = (beam - beam.min()) / (beam.max() - beam.min())
+            vmin=0.
+            vmax=1.
+        else:
+            vmin=beam.min()**2
+            vmax=beam.max()**2
+        kwargs = {**kwargs, **dict(rasterized=True, vmin=vmin, vmax=vmax)}
+        img = ax.pcolormesh(slowness, slowness, beam ** 2, shading=&#39;auto&#39;, **kwargs)
+        ax.set_aspect(&#39;equal&#39;)
+        xlim = ax.get_xlim()
+        ylim = ax.get_ylim()
+        grid_style = dict(lw=0.3, dashes=[6, 4], c=&#39;w&#39;)
+        ax.plot(2 * [0], xlim, **grid_style)
+        ax.plot(ylim, 2 * [0], **grid_style)
+        ax.plot(xlim, ylim, **grid_style)
+        ax.plot(xlim, [-y for y in ylim], **grid_style)
+        ax.set_xticks([xlim[0], xlim[0] / 2, 0, xlim[-1] / 2, xlim[-1]])
+        ax.set_yticks([ylim[0], ylim[0] / 2, 0, ylim[-1] / 2, ylim[-1]])
+        ax.set_title(&#39;[%.1f-%.1f]sec&#39; % (self.wtime[self.time_id], 
+                                           self.wtime[self.time_id]+self.wlen))
+        if colorbar:
+            plt.colorbar(mappable=img)
+
+# =============================================================================
+# =============================================================================
+#           compute_plane_wave_synthetic_crossspectral_matrix
+# =============================================================================
+# =============================================================================
+    def compute_plane_wave_synthetic_crossspectral_matrix(self, freq, slowness, azimuth,mx=None):
+        &#34;&#34;&#34;
+
+        :param freq:
+        :param slowness:
+        :param azimuth:
+        :return:
+        &#34;&#34;&#34;
+        if self.use_gpu:
+            try:  # cupy
+                import cupy as cp
+                from scipy.linalg import circulant
+            except:
+                import numpy as cp
+                from scipy.linalg import circulant
+        else:
+            import numpy as cp
+            from scipy.linalg import circulant
+            
+        # Phase
+        wavenumber = 2 * cp.pi * freq * slowness
+        azimuth = cp.radians(azimuth)
+        scalar_product = cp.sin(azimuth) * self.x + cp.cos(azimuth) * self.y
+    
+        # Wavefield
+        wavefield = cp.exp(-1j * wavenumber * scalar_product)
+
+        #spatial smoothing
+        if mx is not None:
+            c = np.zeros((self.ntrace,))
+            nx = int((mx - 1) / 2)
+            c[0:nx + 1] = 1.
+            c[-nx:] = 1.
+            cc = cp.asarray(circulant(c))
+            #cc = cc[:, :, None]
+        else:
+            cc = 1.
+        # cross-spectra
+        self.xspec = (wavefield * wavefield.conj()[:, None]) * cc
+        self.xspec = self.xspec[None, None, :,:]</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="beamforming.beamforming.Beam.clear"><code class="name flex">
+<span>def <span class="ident">clear</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def clear(self):
+    &#34;&#34;&#34;
+
+    &#34;&#34;&#34;
+    if self.use_gpu:
+        try:
+            import cupy as cp
+            for e in self.__dict__:
+                self.__dict__[e] = None
+            cp.get_default_memory_pool().free_all_blocks()
+        except:
+            pass</code></pre>
+</details>
+</dd>
+<dt id="beamforming.beamforming.Beam.compute_XY_beam_projection"><code class="name flex">
+<span>def <span class="ident">compute_XY_beam_projection</span></span>(<span>self, time_id=0, freq_id=0, method='classic', comp='radial', epsilon=1e-10, rank=1, stack=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><h2 id="description">Description:</h2>
+<p>Compute the projection of the cross-spectral matrix on a reference beam for a given time window and a given frequency</p>
+<h2 id="input">Input:</h2>
+<pre><code>time_id: (int) time index for the cross-spectral matrix
+freq_id: (int) frequency index for the cross -sptral matrix
+method: (str) 'classic' or 'music' (default is classic)
+epsilon: (float) threshold for music method, default is 1.e-10
+rank: (int) keep rank singular values in svd decomposition
+stack: (bool) stack projection between successive calls (default = False)
+</code></pre>
+<h2 id="return">Return:</h2>
+<pre><code>nothing, Beam.beam is written
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def compute_XY_beam_projection(self, time_id=0, freq_id=0, method=&#39;classic&#39;, comp=&#39;radial&#39;, epsilon=1e-10, rank=1, stack=False):
+    &#34;&#34;&#34;
+    ## Description:
+    Compute the projection of the cross-spectral matrix on a reference beam for a given time window and a given frequency
+
+    ## Input:
+        time_id: (int) time index for the cross-spectral matrix
+        freq_id: (int) frequency index for the cross -sptral matrix
+        method: (str) &#39;classic&#39; or &#39;music&#39; (default is classic)
+        epsilon: (float) threshold for music method, default is 1.e-10
+        rank: (int) keep rank singular values in svd decomposition
+        stack: (bool) stack projection between successive calls (default = False)
+    ## Return:
+        nothing, Beam.beam is written
+    &#34;&#34;&#34;
+    if self.use_gpu:
+        import cupy as cp
+        has_cupy = True
+        from cupy.linalg import svd
+    else:
+        import numpy as cp
+        has_cupy = False
+        from numpy.linalg import svd
+
+    if comp == &#39;radial&#39;:
+        coefs = self.X_radial, self.Y_radial
+    else:
+        coefs = self.X_tang, self.Y_tang
+
+    beam = cp.zeros((self.dimension ** 2,))
+    if method == &#39;classic&#39;:
+        if has_cupy:
+            for i,cof in enumerate(coefs):
+                tmp = (cof * self.beamformer_conj) @ self.xspec[i][time_id,freq_id] @ (cof * self.beamformer).T
+                beam += cp.diag(tmp).real
+        else:
+            for s in range(self.dimension**2):
+                for i,cof in enumerate(coefs):
+                    beam[s] += (
+                          (self.beamformer_conj[s, :]*cof[s]).dot(
+                           self.xspec[i][time_id,freq_id].dot(self.beamformer[s, :]*cof[s])
+                                                                   )
+                          ).real
+
+
+    elif method == &#39;music&#39;:
+        beam = cp.zeros((self.dimension ** 2,))
+        for i, cof in enumerate(coefs):
+            eigenvectors, eigenvalues, _ = svd(self.xspec[i][time_id, freq_id])
+            eigenvalues[:rank] = 0.0
+            eigenvalues[rank:] = 1.0
+            eigenvalues = cp.diag(eigenvalues)
+            if has_cupy:
+                #eigenvectors = cp.array(eigenvectors)
+                xspec = eigenvectors @ eigenvalues @ cp.conj(eigenvectors.T)
+                tmp = (cof*self.beamformer_conj) @ xspec @ (cof*self.beamformer.T)
+                beam += 1. / (cp.diag(tmp).real + epsilon)
+            else:
+                xspec = eigenvectors @ eigenvalues @ cp.conj(eigenvectors.T)
+                for s in range(self.dimension ** 2):
+                    beam[s] = ((cof[s]*self.beamformer_conj[s, :]).dot(xspec.dot(cof[s]*self.beamformer[s, :]))).real
+                    beam[s] = 1 / cp.abs(beam[s] + epsilon)
+
+
+
+    if stack and self.beam is not None:
+        self.beam += beam
+    else:
+        self.beam = beam
+    self.time_id = time_id</code></pre>
+</details>
+</dd>
+<dt id="beamforming.beamforming.Beam.compute_XY_crossspectral_matrix"><code class="name flex">
+<span>def <span class="ident">compute_XY_crossspectral_matrix</span></span>(<span>self, segment_duration_sec, freq_min, freq_max, step=1.0, average=10, overlap=0.5, mx=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><h2 id="description">Description</h2>
+<pre><code>Compute the cross-spectral matrix on moving time window
+</code></pre>
+<h2 id="input-for-fft-computations">Input for FFT computations</h2>
+<pre><code>segment_duration: (float) time window length for analysis
+step: (float) time step between two consecutive windows
+</code></pre>
+<h2 id="input-for-cross-spectral-computations">Input for cross-spectral computations</h2>
+<pre><code>freq_min: (float)
+freq_max: (float)
+average:  (int) cross spectrum computed over 'average' time windows
+overlap: (float)
+mx: (int) compute xspec on the mx first neighbors only, default=None, compute cross-spectrum on all neighbors
+</code></pre>
+<p>Note: numpy code source inspired or copied from covnet by leonard Seydoux</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def compute_XY_crossspectral_matrix(self, segment_duration_sec, freq_min, freq_max, step = 1., average=10, overlap=0.5, mx=None):
+    &#34;&#34;&#34;
+    ## Description
+        Compute the cross-spectral matrix on moving time window
+
+    ## Input for FFT computations
+        segment_duration: (float) time window length for analysis
+        step: (float) time step between two consecutive windows
+
+    ## Input for cross-spectral computations
+        freq_min: (float)
+        freq_max: (float)
+        average:  (int) cross spectrum computed over &#39;average&#39; time windows
+        overlap: (float)
+        mx: (int) compute xspec on the mx first neighbors only, default=None, compute cross-spectrum on all neighbors
+
+    Note: numpy code source inspired or copied from covnet by leonard Seydoux
+    &#34;&#34;&#34;
+    from scipy.signal import hanning
+    from scipy.linalg import circulant
+    from .logtable import waitbar
+
+    if self.use_gpu:
+        import cupy as cp
+        CMPLX = CMPLX_GPU
+        data = self.data.astype(&#39;float32&#39;)
+        has_cupy = True
+    else:
+        import numpy as cp
+        CMPLX = &#39;complex128&#39;
+        data = self.data
+        has_cupy = False
+
+    # Time windows
+    len_seg = int(segment_duration_sec / self.dt)
+    len_step = int(np.floor(len_seg * step))
+    times = self.time[:1 - len_seg:len_step]
+    n_windows = len(times)
+
+    # Frequency
+    # set length argument for fft call
+    # force even length
+    nfft = 2*int(np.floor(len_seg/2)+1)
+    len_seg = nfft
+    n_frequencies = int(nfft/2+1) #see rfft doc
+    df = 1./(self.dt*nfft)
+    self.frequency = np.arange(0, n_frequencies)*df
+
+    # =========================================================================
+    # compute spectra
+    # =========================================================================
+    spectra_shape = self.ntrace, n_windows, n_frequencies
+    spectra = cp.zeros(spectra_shape, dtype=CMPLX)
+    wbar = waitbar(&#39;Spectra&#39;, self.ntrace)
+    self.xspec=()
+    for i,data in enumerate(self.data_X, self.data_Y):
+        data_gpu = cp.array(data)
+        hanning_gpu = cp.array(hanning(len_seg))
+        for trace_id in range(0, self.ntrace):
+            wbar.progress(trace_id)
+            tr = data_gpu[trace_id]
+            for time_id in range(n_windows):
+                start = time_id * len_step
+                end = start + len_seg
+                segment = tr[start:end] * hanning_gpu
+                spectra[trace_id, time_id] = cp.fft.rfft(segment, n=nfft)
+        #free unused memory in GPU, i.e. original data
+        if has_cupy:
+            data_gpu = None
+            hanning_gpu = None
+            tr = None
+            segment = None
+            cp.get_default_memory_pool().free_all_blocks()
+
+
+        # add a supplementary time step for loop ending
+        t_end = self.time[-1]
+        times = np.hstack((times, t_end))
+
+        # =========================================================================
+        # compute cross-spectral matrix
+        # =========================================================================
+
+        # select frequencies
+        freq_keep = (self.frequency &gt; freq_min) &amp; (self.frequency &lt; freq_max)
+        self.frequency = self.frequency[freq_keep]
+        n_frequencies = len(self.frequency)
+        spectra = spectra[..., freq_keep].copy()
+
+        # set time averaging parameters
+        overlap = int(average * overlap)
+
+        # Times ??
+        t_end = times[-1]
+        times = times[:-1]
+        times = times[:1 - average:overlap]
+        n_average = len(times)
+        #times = np.hstack((times, t_end))
+
+        # introduce a spatial extent for correlation computation
+        # this has a sense only when the network has a 1D/2D regular grid
+        if mx is not None:
+            c = np.zeros((self.ntrace,))
+            nx = int((mx-1)/2)
+            c[0:nx+1]=1.
+            c[-nx:]=1.
+            cc = cp.asarray(circulant(c))
+            cc = cc[:,:,None]
+        else:
+            cc=1.
+
+        # Initialization
+        xspec_shape = (n_average, self.ntrace, self.ntrace, n_frequencies)
+        xspec = cp.zeros(xspec_shape, dtype=CMPLX)
+        wbar = waitbar(&#39;Covariance&#39;, n_average)
+        for wid in range(n_average):
+            #n_traces, n_windows, n_frequencies = spectra.shape
+            beg = overlap * wid
+            end = beg + average
+            spectra_tmp = spectra[:, beg:end, :].copy()
+
+            X = (spectra_tmp[:, None, 0, :] * cp.conj(spectra_tmp[:, 0, :]))*cc
+            for swid in range(1, average):
+                X += (spectra_tmp[:, None, swid, :] * cp.conj(spectra_tmp[:, swid, :]))*cc
+
+            xspec[wid] = X
+            wbar.progress(wid)
+
+        self.xspec.append(xspec.transpose([0, -1, 1, 2]).copy()) #is copy() really necessary?
+
+    if has_cupy:
+        spectra_tmp = None
+        spectra = None
+        X = None
+        cc = None
+        xspec = None
+        cp.get_default_memory_pool().free_all_blocks()
+
+    self.wtime = times</code></pre>
+</details>
+</dd>
+<dt id="beamforming.beamforming.Beam.compute_beam_projection"><code class="name flex">
+<span>def <span class="ident">compute_beam_projection</span></span>(<span>self, time_id=0, freq_id=0, method='classic', epsilon=1e-10, rank=1, stack=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><h2 id="description">Description:</h2>
+<p>Compute the projection of the cross-spectral matrix on a reference beam for a given time window and a given frequency</p>
+<h2 id="input">Input:</h2>
+<pre><code>time_id: (int) time index for the cross-spectral matrix
+freq_id: (int) frequency index for the cross -sptral matrix
+method: (str) 'classic' or 'music' (default is classic)
+epsilon: (float) threshold for music method, default is 1.e-10
+rank: (int) keep rank singular values in svd decomposition
+stack: (bool) stack projection between successive calls (default = False)
+</code></pre>
+<h2 id="return">Return:</h2>
+<pre><code>nothing, Beam.beam is written
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def compute_beam_projection(self, time_id=0, freq_id=0, method=&#39;classic&#39;, epsilon=1e-10, rank=1, stack=False):
+    &#34;&#34;&#34;
+    ## Description:
+    Compute the projection of the cross-spectral matrix on a reference beam for a given time window and a given frequency
+
+    ## Input:
+        time_id: (int) time index for the cross-spectral matrix
+        freq_id: (int) frequency index for the cross -sptral matrix
+        method: (str) &#39;classic&#39; or &#39;music&#39; (default is classic)
+        epsilon: (float) threshold for music method, default is 1.e-10
+        rank: (int) keep rank singular values in svd decomposition
+        stack: (bool) stack projection between successive calls (default = False)
+    ## Return:
+        nothing, Beam.beam is written
+    &#34;&#34;&#34;
+    from .logtable import waitbar
+    if self.use_gpu:
+        import cupy as cp
+        has_cupy = True
+        from cupy.linalg import svd, inv
+    else:
+        import numpy as cp
+        has_cupy = False
+        from numpy.linalg import svd, inv
+
+    if method == &#39;classic&#39;:
+        if has_cupy:
+            #print(type(self.xspec),self.xspec.dtype)
+            tmp = self.beamformer_conj @ self.xspec[time_id,freq_id] @ self.beamformer.T
+            beam = cp.diag(tmp).real
+        else:
+            beam = cp.ndarray((self.dimension**2,))
+            #wbar = waitbar(&#39;Projection&#39;,self.dimension**2)
+            for s in range(self.dimension**2):
+                beam[s] = (self.beamformer_conj[s, :].dot(self.xspec[time_id,freq_id].dot(self.beamformer[s, :]))).real
+                #wbar.progress(s)
+
+    elif method == &#39;music&#39;:
+        eigenvectors, eigenvalues, _ = svd(self.xspec[time_id, freq_id])
+        eigenvalues[:rank] = 0.0
+        eigenvalues[rank:] = 1.0
+        eigenvalues = cp.diag(eigenvalues)
+        if has_cupy:
+            #eigenvectors = cp.array(eigenvectors)
+            xspec = eigenvectors @ eigenvalues @ cp.conj(eigenvectors.T)
+            tmp = self.beamformer_conj @ xspec @ self.beamformer.T
+            beam = cp.diag(tmp).real + epsilon
+            beam = 1 / cp.abs(beam)
+        else:
+            beam = cp.ndarray((self.dimension**2,))
+            xspec = eigenvectors @ eigenvalues @ cp.conj(eigenvectors.T)
+            for s in range(self.dimension ** 2):
+                beam[s] = (self.beamformer_conj[s, :].dot(xspec.dot(self.beamformer[s, :])).real)
+                beam[s] = 1 / cp.abs(beam[s] + epsilon)
+
+    elif method == &#39;mvdr&#39;:
+        if has_cupy:
+            xspec_inv = inv(self.xspec[time_id,freq_id]+cp.eye(self.ntrace)*0.01)
+            tmp = self.beamformer_conj @ xspec_inv @ self.beamformer.T
+            beam = cp.diag(tmp).real #+ epsilon
+            beam = 1 / cp.abs(beam)
+        else:
+            beam = cp.ndarray((self.dimension**2,))
+            xspec_inv = inv(self.xspec[time_id, freq_id]+cp.eye(self.ntrace)*0.01)
+            for s in range(self.dimension**2):
+                beam[s] = 1./(self.beamformer_conj[s, :].dot(xspec_inv.dot(self.beamformer[s, :]))).real+epsilon
+
+    if stack and self.beam is not None:
+        self.beam += beam
+    else:
+        self.beam = beam
+    self.time_id = time_id</code></pre>
+</details>
+</dd>
+<dt id="beamforming.beamforming.Beam.compute_crossspectral_matrix"><code class="name flex">
+<span>def <span class="ident">compute_crossspectral_matrix</span></span>(<span>self, segment_duration_sec, freq_min, freq_max, step=1.0, average=10, overlap=0.5, mx=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><h2 id="description">Description</h2>
+<pre><code>Compute the cross-spectral matrix on moving time window
+</code></pre>
+<h2 id="input-for-fft-computations">Input for FFT computations</h2>
+<pre><code>segment_duration: (float) time window length for analysis
+step: (float) time step between two consecutive windows
+</code></pre>
+<h2 id="input-for-cross-spectral-computations">Input for cross-spectral computations</h2>
+<pre><code>freq_min: (float)
+freq_max: (float)
+average:  (int) cross spectrum computed over 'average' time windows
+overlap: (float) overlap between consecutive averaged windows
+mx: (int) compute xspec on the mx first neighbors only, default=None, compute cross-spectrum on all neighbors
+</code></pre>
+<p>Note: numpy code source inspired or copied from covnet by leonard Seydoux</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def compute_crossspectral_matrix(self, segment_duration_sec, freq_min, freq_max, step = 1., average=10, overlap=0.5, mx=None):
+    &#34;&#34;&#34;
+    ## Description
+        Compute the cross-spectral matrix on moving time window
+
+    ## Input for FFT computations
+        segment_duration: (float) time window length for analysis
+        step: (float) time step between two consecutive windows
+
+    ## Input for cross-spectral computations
+        freq_min: (float)
+        freq_max: (float)
+        average:  (int) cross spectrum computed over &#39;average&#39; time windows
+        overlap: (float) overlap between consecutive averaged windows
+        mx: (int) compute xspec on the mx first neighbors only, default=None, compute cross-spectrum on all neighbors
+
+    Note: numpy code source inspired or copied from covnet by leonard Seydoux
+    &#34;&#34;&#34;
+    from scipy.signal.windows  import hann
+    from scipy.linalg import circulant
+    from .logtable import waitbar
+
+    if self.use_gpu:
+        import cupy as cp
+        CMPLX = CMPLX_GPU
+        data = self.data.astype(&#39;float32&#39;)
+        has_cupy = True
+    else:
+        import numpy as cp
+        CMPLX = &#39;complex128&#39;
+        data = self.data
+        has_cupy = False
+
+    # Time windows
+    # set length argument for fft call
+    # force even length
+    len_seg = int(segment_duration_sec / self.dt)
+    if np.mod(len_seg,2) == 1:
+        len_seg = 2*int(np.floor(len_seg/2)+1)
+    nfft = len_seg
+    len_step = int(np.floor(len_seg * step))
+    times = self.time[:1 - len_seg:len_step]
+    n_windows = len(times)
+    self.wlen = len_seg*self.dt
+
+    # Frequency
+    n_frequencies = int(nfft/2+1) #see rfft doc
+    df = 1./(self.dt*nfft)
+    self.frequency = np.arange(0, n_frequencies)*df
+
+    # =========================================================================
+    # compute spectra
+    # =========================================================================
+    spectra_shape = self.ntrace, n_windows, n_frequencies
+    spectra = cp.zeros(spectra_shape, dtype=CMPLX)
+    wbar = waitbar(&#39;Spectra&#39;, self.ntrace)
+    data_gpu = cp.array(data)
+    hanning_gpu = cp.array(hann(len_seg))
+    for trace_id in range(0, self.ntrace):
+        wbar.progress(trace_id)
+        tr = data_gpu[trace_id]
+        for time_id in range(n_windows):
+            start = time_id * len_step
+            end = start + len_seg
+            segment = tr[start:end] * hanning_gpu
+            spectra[trace_id, time_id] = cp.fft.rfft(segment, n=nfft)
+            
+    #free unused memory in GPU, i.e. original data
+    if has_cupy:
+        data_gpu = None
+        hanning_gpu = None
+        tr = None
+        segment = None
+        cp.get_default_memory_pool().free_all_blocks()
+
+
+    # add a supplementary time step for later averaging
+    t_end = self.time[-1]
+    times = np.hstack((times, t_end))
+
+    # =========================================================================
+    # compute cross-spectral matrix
+    # =========================================================================
+
+    # select frequencies
+    freq_keep = (self.frequency &gt; freq_min) &amp; (self.frequency &lt; freq_max)
+    self.frequency = self.frequency[freq_keep]
+    n_frequencies = len(self.frequency)
+    spectra = spectra[..., freq_keep].copy()
+
+    # 
+    # spectra are average over time if requested
+    # set time averaging parameters
+    # 
+    if average&gt;n_windows:
+        average = n_windows
+    overlap = int(average * overlap)
+
+    # Times ??
+    t_end = times[-1]
+    times = times[:-1]
+    times = times[:1 - average:overlap]
+    self.wlen *= average
+    n_average = len(times)
+    #times = np.hstack((times, t_end))
+
+    # introduce a spatial extent for correlation computation
+    # this has a sense only when the network has a 1D regular spacing
+    if mx is not None:
+        c = np.zeros((self.ntrace,))
+        nx = int((mx-1)/2)
+        c[0:nx+1]=1.
+        c[-nx:]=1.
+        cc = cp.asarray(circulant(c))
+        cc = cc[:,:,None]
+    else:
+        cc=1.
+
+    # Initialization
+    xspec_shape = (n_average, self.ntrace, self.ntrace, n_frequencies)
+    xspec = cp.zeros(xspec_shape, dtype=CMPLX)
+    wbar = waitbar(&#39;Cross-spectra&#39;, n_average)
+    for wid in range(n_average):
+        #n_traces, n_windows, n_frequencies = spectra.shape
+        beg = overlap * wid
+        end = beg + average
+        spectra_tmp = spectra[:, beg:end, :].copy()
+
+        X = (spectra_tmp[:, None, 0, :] * cp.conj(spectra_tmp[:, 0, :]))*cc
+        for swid in range(1, average):
+            X += (spectra_tmp[:, None, swid, :] * cp.conj(spectra_tmp[:, swid, :]))*cc
+
+        xspec[wid] = X
+        wbar.progress(wid)
+
+    self.xspec = xspec.transpose([0, -1, 1, 2]).copy() #is copy() really necessary?
+
+    if has_cupy:
+        spectra_tmp = None
+        spectra = None
+        X = None
+        cc = None
+        xspec = None
+        cp.get_default_memory_pool().free_all_blocks()
+
+    self.wtime = times</code></pre>
+</details>
+</dd>
+<dt id="beamforming.beamforming.Beam.compute_plane_wave_synthetic_crossspectral_matrix"><code class="name flex">
+<span>def <span class="ident">compute_plane_wave_synthetic_crossspectral_matrix</span></span>(<span>self, freq, slowness, azimuth, mx=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:param freq:
+:param slowness:
+:param azimuth:
+:return:</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def compute_plane_wave_synthetic_crossspectral_matrix(self, freq, slowness, azimuth,mx=None):
+    &#34;&#34;&#34;
+
+    :param freq:
+    :param slowness:
+    :param azimuth:
+    :return:
+    &#34;&#34;&#34;
+    if self.use_gpu:
+        try:  # cupy
+            import cupy as cp
+            from scipy.linalg import circulant
+        except:
+            import numpy as cp
+            from scipy.linalg import circulant
+    else:
+        import numpy as cp
+        from scipy.linalg import circulant
+        
+    # Phase
+    wavenumber = 2 * cp.pi * freq * slowness
+    azimuth = cp.radians(azimuth)
+    scalar_product = cp.sin(azimuth) * self.x + cp.cos(azimuth) * self.y
+
+    # Wavefield
+    wavefield = cp.exp(-1j * wavenumber * scalar_product)
+
+    #spatial smoothing
+    if mx is not None:
+        c = np.zeros((self.ntrace,))
+        nx = int((mx - 1) / 2)
+        c[0:nx + 1] = 1.
+        c[-nx:] = 1.
+        cc = cp.asarray(circulant(c))
+        #cc = cc[:, :, None]
+    else:
+        cc = 1.
+    # cross-spectra
+    self.xspec = (wavefield * wavefield.conj()[:, None]) * cc
+    self.xspec = self.xspec[None, None, :,:]</code></pre>
+</details>
+</dd>
+<dt id="beamforming.beamforming.Beam.compute_planewave_beamformer"><code class="name flex">
+<span>def <span class="ident">compute_planewave_beamformer</span></span>(<span>self, frequency, slowness_max=0.1, dimension=100, flip=True, clean_gpu=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><h2 id="description">Description:</h2>
+<pre><code>Compute the set of slowness and delay that will be used for beam projection
+Assume plane wave propagation: exp(1j*2*pi*freq*(Sx*x + Sy*y))
+</code></pre>
+<h2 id="input">Input:</h2>
+<pre><code>frequency: (float) frequency in Hz
+slowness_max: (float) plane wave is computed for Sx and Sy slowness varying between [-slowness_max,slowness_max]
+dimension: (int) number of slowness values in the range
+flip: (bool) flip phase (default = True)
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def compute_planewave_beamformer(self, frequency, slowness_max=0.1, dimension=100, flip = True,
+                                 clean_gpu=False):
+    &#34;&#34;&#34;
+    ## Description:
+        Compute the set of slowness and delay that will be used for beam projection
+        Assume plane wave propagation: exp(1j*2*pi*freq*(Sx*x + Sy*y))
+    ## Input:
+        frequency: (float) frequency in Hz
+        slowness_max: (float) plane wave is computed for Sx and Sy slowness varying between [-slowness_max,slowness_max]
+        dimension: (int) number of slowness values in the range
+        flip: (bool) flip phase (default = True)
+    &#34;&#34;&#34;
+    from numpy import abs
+    if self.use_gpu:
+        import cupy as cp
+        CMPLX = CMPLX_GPU
+    else:
+        import numpy as cp
+        CMPLX = &#39;complex128&#39;
+
+    #print(&#39;etat des variables&#39;,(&#39;x&#39; in locals()),(&#39;phase_x&#39; in locals()))
+
+    #compute phase shift only if needed
+    if dimension != self.dimension or slowness_max != self.slowness_max:
+        self.dimension = dimension
+        self.slowness_max = slowness_max
+        self.slowness = cp.linspace(-slowness_max, slowness_max, dimension)
+        self.slowness_grid = cp.meshgrid(self.slowness, self.slowness)
+        self.slowness_abs = cp.sqrt(self.slowness_grid[0].ravel()**2 + self.slowness_grid[1].ravel()**2)
+
+        # outer product of (u,v) = dot(u,transpose(v))
+        # ravel: return a 1D vector from a 2D matrix
+        # return matrix of Sx*x
+        self.phase_x = cp.outer(self.slowness_grid[0].ravel(), self.x)
+        # return matrix of Sy*y
+        self.phase_y = cp.outer(self.slowness_grid[1].ravel(), self.y)
+
+        # case of 2 component beamforming
+        if self.data_X is not None and self.data_Y is not None:
+            self.X_radial = self.slowness_grid[0].ravel()/self.slowness_abs
+            self.Y_radial = self.slowness_grid[1].ravel()/self.slowness_abs
+            self.X_tang = self.Y_radial
+            self.Y_tang = -self.X_radial
+
+    freq_id = abs(self.frequency - frequency).argmin()
+    frequency = self.frequency[freq_id]
+
+    angular_frequency = 2 * np.pi * frequency
+    if flip:
+        angular_frequency *= -1
+
+    self.beamformer = cp.exp(1j * angular_frequency * (self.phase_x + self.phase_y)).astype(CMPLX)
+    self.beamformer_conj = self.beamformer**(-1)
+
+    #if has_cupy and clean_gpu:
+    #    x = None
+    #    y = None
+    #    phase_x = None
+    #    phase_y = None
+    #    cp.get_default_memory_pool().free_all_blocks()
+
+    return freq_id</code></pre>
+</details>
+</dd>
+<dt id="beamforming.beamforming.Beam.copy"><code class="name flex">
+<span>def <span class="ident">copy</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def copy(self):
+    &#34;&#34;&#34;
+
+    &#34;&#34;&#34;
+    newbeam = Beam()
+    for e in self.__dict__:
+        newbeam.__dict__[e] = self.__dict__[e]
+
+    return newbeam</code></pre>
+</details>
+</dd>
+<dt id="beamforming.beamforming.Beam.pcolormesh"><code class="name flex">
+<span>def <span class="ident">pcolormesh</span></span>(<span>self, ax, colorbar=False, scale=True, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def pcolormesh(self, ax, colorbar=False, scale=True, **kwargs):
+    &#34;&#34;&#34;
+
+    &#34;&#34;&#34;
+    if self.use_gpu:
+        has_cupy = True
+    else:
+        has_cupy = False
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    if has_cupy:
+        beam = self.beam.get()
+        slowness = self.slowness.get()
+    else:
+        beam=self.beam
+        slowness = self.slowness
+
+    beam = np.reshape(beam, (self.dimension, self.dimension))
+    beam = np.rot90(beam, 2)
+    if scale:
+        beam = (beam - beam.min()) / (beam.max() - beam.min())
+        vmin=0.
+        vmax=1.
+    else:
+        vmin=beam.min()**2
+        vmax=beam.max()**2
+    kwargs = {**kwargs, **dict(rasterized=True, vmin=vmin, vmax=vmax)}
+    img = ax.pcolormesh(slowness, slowness, beam ** 2, shading=&#39;auto&#39;, **kwargs)
+    ax.set_aspect(&#39;equal&#39;)
+    xlim = ax.get_xlim()
+    ylim = ax.get_ylim()
+    grid_style = dict(lw=0.3, dashes=[6, 4], c=&#39;w&#39;)
+    ax.plot(2 * [0], xlim, **grid_style)
+    ax.plot(ylim, 2 * [0], **grid_style)
+    ax.plot(xlim, ylim, **grid_style)
+    ax.plot(xlim, [-y for y in ylim], **grid_style)
+    ax.set_xticks([xlim[0], xlim[0] / 2, 0, xlim[-1] / 2, xlim[-1]])
+    ax.set_yticks([ylim[0], ylim[0] / 2, 0, ylim[-1] / 2, ylim[-1]])
+    ax.set_title(&#39;[%.1f-%.1f]sec&#39; % (self.wtime[self.time_id], 
+                                       self.wtime[self.time_id]+self.wlen))
+    if colorbar:
+        plt.colorbar(mappable=img)</code></pre>
+</details>
+</dd>
+<dt id="beamforming.beamforming.Beam.set_XY_data"><code class="name flex">
+<span>def <span class="ident">set_XY_data</span></span>(<span>self, data_X, data_Y, fs, trange=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><h2 id="description">Description:</h2>
+<pre><code>set horizontal 2 components data
+</code></pre>
+<h2 id="input">Input:</h2>
+<pre><code>data_X, data_Y: (float) 2D ndarray of size (nstat, ntime) containing seismic data
+fs: (float) sampling rate
+trange: (int) list or tuple (index_tim_min, index_time_max)
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_XY_data(self, data_X, data_Y, fs, trange=None):
+    &#34;&#34;&#34;
+    ## Description:
+        set horizontal 2 components data
+
+    ## Input:
+        data_X, data_Y: (float) 2D ndarray of size (nstat, ntime) containing seismic data
+        fs: (float) sampling rate
+        trange: (int) list or tuple (index_tim_min, index_time_max)
+    &#34;&#34;&#34;
+    if trange is not None:
+        tstart, tend = trange
+    else:
+        tstart = 0;
+        tend = -1
+    if data_X.shape != data_Y.shape:
+        raise ValueError(&#39; data_X and data_Y dimension mismatch&#39;)
+    if self.data is not None:
+        raise ValueError(&#39;You already set 1 component dataset&#39;)
+
+
+    self.data_X = data_X[tstart:tend]
+    self.data_Y = data_Y[tstart:tend]
+    self.dt = 1./fs
+    self.ntime = self.data.shape[1]
+    self.ntrace = self.data.shape[0]
+    self.time = np.linspace(0, self.ntime) * self.dt</code></pre>
+</details>
+</dd>
+<dt id="beamforming.beamforming.Beam.set_data"><code class="name flex">
+<span>def <span class="ident">set_data</span></span>(<span>self, drange=None, ddecim=1, trange=None, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><h2 id="description">Description:</h2>
+<p>Set seismic data</p>
+<h2 id="input-from-das-data-using-a1section-object">Input from DAS data using A1Section object:</h2>
+<pre><code>a1section: A1Section object
+drange: [dmin, dmax] (float) tuple or list of distance range (default = None)
+ddecim: (int) space decimation
+trange: [tmin, tmax] (float) tuple or list of time range (default = None)
+</code></pre>
+<h2 id="input-from-float-array">Input from float array</h2>
+<pre><code>section: (float) 2D ndarray of size nstat x npts
+trange: (int) list or tuple (index_tim_min, index_time_max)
+fs: (float) sampling rate
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_data(self, drange=None, ddecim=1, trange=None, **kwargs):
+    &#34;&#34;&#34;
+    ## Description:
+    Set seismic data
+
+    ## Input from DAS data using A1Section object:
+        a1section: A1Section object
+        drange: [dmin, dmax] (float) tuple or list of distance range (default = None)
+        ddecim: (int) space decimation
+        trange: [tmin, tmax] (float) tuple or list of time range (default = None)
+
+    ## Input from float array
+        section: (float) 2D ndarray of size nstat x npts
+        trange: (int) list or tuple (index_tim_min, index_time_max)
+        fs: (float) sampling rate
+    &#34;&#34;&#34;
+    if self.data_X is not None or self.data_Y is not None:
+        raise ValueError(&#39;You already set 2 components dataset&#39;)
+
+    if &#39;a1section&#39; in kwargs:
+        from .core import A1Section
+        a1 = kwargs[&#39;a1section&#39;]
+        if drange is not None:
+            dstart,dend = A1Section.index(drange=drange)
+        else:
+            dstart=None; dend=None
+        if trange is not None:
+            tstart, tend = A1Section.index(trange=trange)
+        else:
+            tstart=None; tend=None
+        self.data = a1.data[dstart:dend:ddecim,tstart:tend]
+        self.dt = a1[&#39;dt&#39;]
+        self.time = a1[&#39;time&#39;][tstart:tend]
+        self.ntime = len(self.time)
+        self.ntrace = self.data.shape[0]
+
+    elif &#39;section&#39; in kwargs and &#39;fs&#39; in kwargs:
+        if trange is not None:
+            tstart, tend = trange
+        else:
+            tstart=None; tend=None
+        self.data = kwargs[&#39;section&#39;][:,tstart:tend]
+        self.dt = 1./kwargs[&#39;fs&#39;]
+        self.ntime = self.data.shape[1]
+        self.ntrace = self.data.shape[0]
+        self.time = np.arange(0,self.ntime)*self.dt
+
+    else:
+        raise ValueError(&#34;wrong input args, a1section or section AND dt&#34;)</code></pre>
+</details>
+</dd>
+<dt id="beamforming.beamforming.Beam.set_receiver"><code class="name flex">
+<span>def <span class="ident">set_receiver</span></span>(<span>self, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><h2 id="description">Description:</h2>
+<pre><code>Set position parameters of stations
+</code></pre>
+<h2 id="input">Input:</h2>
+<pre><code>x, y: (float) ndarray of size [nstat]
+or
+xy: (float) ndarray of size [nstat x 2]
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_receiver(self, **kwargs):
+    &#34;&#34;&#34;
+    ## Description:
+        Set position parameters of stations
+
+    ## Input:
+        x, y: (float) ndarray of size [nstat]
+        or
+        xy: (float) ndarray of size [nstat x 2]
+    &#34;&#34;&#34;
+    if self.use_gpu:
+        import cupy as cp
+        FLOAT = FLOAT_GPU
+    else:
+        import numpy as cp
+        FLOAT = &#39;float64&#39;
+
+    if &#39;xy&#39; in kwargs:
+        xy = kwargs[&#39;xy&#39;]
+        self.x = cp.array(xy[0, :], dtype=FLOAT)
+        self.y = cp.array(xy[1, :], dtype=FLOAT)
+    elif &#39;x&#39; in kwargs and &#39;y&#39; in kwargs:
+        self.x = cp.array(kwargs[&#39;x&#39;], dtype=FLOAT)
+        self.y = cp.array(kwargs[&#39;y&#39;], dtype=FLOAT)
+    else:
+        raise ValueError(&#39;missing input arguments xy or x and y&#39;)
+    self.nstat = len(self.x)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="beamforming" href="index.html">beamforming</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="beamforming.beamforming.Beam" href="#beamforming.beamforming.Beam">Beam</a></code></h4>
+<ul class="">
+<li><code><a title="beamforming.beamforming.Beam.clear" href="#beamforming.beamforming.Beam.clear">clear</a></code></li>
+<li><code><a title="beamforming.beamforming.Beam.compute_XY_beam_projection" href="#beamforming.beamforming.Beam.compute_XY_beam_projection">compute_XY_beam_projection</a></code></li>
+<li><code><a title="beamforming.beamforming.Beam.compute_XY_crossspectral_matrix" href="#beamforming.beamforming.Beam.compute_XY_crossspectral_matrix">compute_XY_crossspectral_matrix</a></code></li>
+<li><code><a title="beamforming.beamforming.Beam.compute_beam_projection" href="#beamforming.beamforming.Beam.compute_beam_projection">compute_beam_projection</a></code></li>
+<li><code><a title="beamforming.beamforming.Beam.compute_crossspectral_matrix" href="#beamforming.beamforming.Beam.compute_crossspectral_matrix">compute_crossspectral_matrix</a></code></li>
+<li><code><a title="beamforming.beamforming.Beam.compute_plane_wave_synthetic_crossspectral_matrix" href="#beamforming.beamforming.Beam.compute_plane_wave_synthetic_crossspectral_matrix">compute_plane_wave_synthetic_crossspectral_matrix</a></code></li>
+<li><code><a title="beamforming.beamforming.Beam.compute_planewave_beamformer" href="#beamforming.beamforming.Beam.compute_planewave_beamformer">compute_planewave_beamformer</a></code></li>
+<li><code><a title="beamforming.beamforming.Beam.copy" href="#beamforming.beamforming.Beam.copy">copy</a></code></li>
+<li><code><a title="beamforming.beamforming.Beam.pcolormesh" href="#beamforming.beamforming.Beam.pcolormesh">pcolormesh</a></code></li>
+<li><code><a title="beamforming.beamforming.Beam.set_XY_data" href="#beamforming.beamforming.Beam.set_XY_data">set_XY_data</a></code></li>
+<li><code><a title="beamforming.beamforming.Beam.set_data" href="#beamforming.beamforming.Beam.set_data">set_data</a></code></li>
+<li><code><a title="beamforming.beamforming.Beam.set_receiver" href="#beamforming.beamforming.Beam.set_receiver">set_receiver</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>
