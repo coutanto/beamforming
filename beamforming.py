@@ -19,30 +19,35 @@ FLOAT_GPU='float32'
 
 __doc__="Module to compute beamforming using classical or music projection, largely inspired by covnet module by L. Seydoux, gpu porting by 0. Coutant"
 
-class Plane_wave_beamformer:
-    def  __init__(self):
-        self.dimension = 0 # number of slowness along 1 direction
-        self.slowness = None    # list of slowness values
-        self.slowness_grid = None # slowness grid as a meshgrid
+class Beamformer():
+    def __init__(self):
+        self.n_slowness = None # number of slowness
+        self.slowness = None   # list of slowness values
+        self.phase_x = None    # phase shift of the reference wave
+        self.phase_y = None
         self.beamformer = None  # multicolumn vector describing the reference wave we project on
         self.beamformer_conj = None # conjugate version of above
-        self.phase_x = None # phase shift of the reference wave
-        self.phase_y = None
+        self.id = 'BF'
+
+class Plane_wave_beamformer(Beamformer):
+    def  __init__(self):
+        super().__init__()
+        self.slowness_grid = None # slowness grid as a meshgrid
+        self.slowness_abs = None
         self.X_radial = None #coeff. used to performed radial/transverse beamforming on 2 components data
         self.Y_radial = None
         self.X_tang = None
         self.Y_tang = None
+        self.id = 'PWBF'
 
-class Cylindrical_wave_beamformer:
+class Cylindrical_wave_beamformer(Beamformer):
     def __init__(self):
-        self.dimension = 0 # number of slowness
-        self.slowness = None    # list of slowness values
-        self.phase_x = None # phase shift of the reference wave
-        self.phase_y = None
+        super().__init__()
         self.x0 = None # grid for source position
         self.y0 = None
-        self.beamformer = None
-        self.beamformer_conj = None
+        self.id = 'CWBF'
+        self.n_source = None
+
 
 class Beam:
     def __init__(self, use_gpu=False):
@@ -97,26 +102,15 @@ class Beam:
         
         # parameter of analysis
         self.frequencies = None # list of frequencies for analysis
-        self.xspec = None # 4D array of cross-spectra [time, freq, nstat, nstat]
+        self.xspec = None   # 4D array of cross-spectra [time, freq, nstat, nstat]
         self.wtime = None   # time of moving windows
         self.wlen = None    # duration (sec) of a moving window
-        self.dimension = None # number of slowness along 1 direction
-        self.slowness = None    # list of slowness values
-        self.slowness_grid = None # slowness grid as a meshgrid
-        self.beamformer = None  # multicolumn vector describing the reference wave we project on
-        self.beamformer_conj = None # conjugate version of above
+        self.bf = Beamformer() # reference wave wo project on (plane, cylindrical, etc)
         self.beam = None    # result of beamforming
-        self.phase_x = None # phase shift of the reference wave
-        self.phase_y = None
-        self.X_radial = None #coeff. used to performed radial/transverse beamforming on 2 components data
-        self.Y_radial = None
-        self.X_tang = None
-        self.Y_tang = None
+
 
         self.time_id = None #current time index used for beamforming, refering to self.wtime
 
-        self.pw_bf = None #plane wave beamformer
-        self.cw_bf = None #cylindrical beamformer
 
 
     def __str__(self):
@@ -149,6 +143,7 @@ class Beam:
             or
             xy: (float) ndarray of size [nstat x 2]
         """
+        from numpy import asarray
         if self.use_gpu:
             import cupy as cp
             FLOAT = FLOAT_GPU
@@ -158,11 +153,11 @@ class Beam:
 
         if 'xy' in kwargs:
             xy = kwargs['xy']
-            self.x = cp.array(xy[0, :], dtype=FLOAT)
-            self.y = cp.array(xy[1, :], dtype=FLOAT)
+            self.x = asarray(xy[0, :], dtype=FLOAT)
+            self.y = asarray(xy[1, :], dtype=FLOAT)
         elif 'x' in kwargs and 'y' in kwargs:
-            self.x = cp.array(kwargs['x'], dtype=FLOAT)
-            self.y = cp.array(kwargs['y'], dtype=FLOAT)
+            self.x = asarray(kwargs['x'], dtype=FLOAT)
+            self.y = asarray(kwargs['y'], dtype=FLOAT)
         else:
             raise ValueError('missing input arguments xy or x and y')
         self.nstat = len(self.x)
@@ -280,7 +275,7 @@ class Beam:
         """
         from scipy.signal.windows  import hann
         from scipy.linalg import circulant
-        from .logtable import waitbar
+        from logtable import waitbar
 
         if self.use_gpu:
             import cupy as cp
@@ -557,7 +552,7 @@ class Beam:
 # =============================================================================
 # =============================================================================
 
-    def compute_planewave_beamformer(self, frequency, slowness_max=0.1, dimension=100, flip = True,
+    def compute_pw_beamformer(self, frequency, slowness_max=0.1, dimension=100, flip = True,
                                      clean_gpu=False):
         """
         ## Description:
@@ -577,29 +572,30 @@ class Beam:
             import numpy as cp
             CMPLX = 'complex128'
 
-        #print('etat des variables',('x' in locals()),('phase_x' in locals()))
+        id = "PWBF %.1f %d" % (slowness_max, dimension)
 
         #compute phase shift only if needed
-        if dimension != self.dimension or slowness_max != self.slowness_max:
-            self.dimension = dimension
-            self.slowness_max = slowness_max
-            self.slowness = cp.linspace(-slowness_max, slowness_max, dimension)
-            self.slowness_grid = cp.meshgrid(self.slowness, self.slowness)
-            self.slowness_abs = cp.sqrt(self.slowness_grid[0].ravel()**2 + self.slowness_grid[1].ravel()**2)
+        if id != self.bf.id:
+            self.id = id
+            self.bf.n_slowness = dimension
+            self.bf.slowness_max = slowness_max
+            self.bf.slowness = cp.linspace(-slowness_max, slowness_max, dimension)
+            self.bf.slowness_grid = cp.meshgrid(self.bf.slowness, self.bf.slowness)
+            self.bf.slowness_abs = cp.sqrt(self.bf.slowness_grid[0].ravel()**2 + self.bf.slowness_grid[1].ravel()**2)
 
             # outer product of (u,v) = dot(u,transpose(v))
             # ravel: return a 1D vector from a 2D matrix
             # return matrix of Sx*x
-            self.phase_x = cp.outer(self.slowness_grid[0].ravel(), self.x)
+            self.bf.phase_x = cp.outer(self.bf.slowness_grid[0].ravel(), cp.array(self.x))
             # return matrix of Sy*y
-            self.phase_y = cp.outer(self.slowness_grid[1].ravel(), self.y)
+            self.bf.phase_y = cp.outer(self.bf.slowness_grid[1].ravel(), cp.array(self.y))
 
             # case of 2 component beamforming
             if self.data_X is not None and self.data_Y is not None:
-                self.X_radial = self.slowness_grid[0].ravel()/self.slowness_abs
-                self.Y_radial = self.slowness_grid[1].ravel()/self.slowness_abs
-                self.X_tang = self.Y_radial
-                self.Y_tang = -self.X_radial
+                self.bf.X_radial = self.bf.slowness_grid[0].ravel()/self.bf.slowness_abs
+                self.bf.Y_radial = self.bf.slowness_grid[1].ravel()/self.bf.slowness_abs
+                self.bf.X_tang = self.bf.Y_radial
+                self.bf.Y_tang = -self.bf.X_radial
 
         freq_id = abs(self.frequency - frequency).argmin()
         frequency = self.frequency[freq_id]
@@ -608,8 +604,8 @@ class Beam:
         if flip:
             angular_frequency *= -1
 
-        self.beamformer = cp.exp(1j * angular_frequency * (self.phase_x + self.phase_y)).astype(CMPLX)
-        self.beamformer_conj = self.beamformer**(-1)
+        self.bf.beamformer = cp.exp(1j * angular_frequency * (self.bf.phase_x + self.bf.phase_y)).astype(CMPLX)
+        self.bf.beamformer_conj = self.bf.beamformer**(-1)
 
         #if has_cupy and clean_gpu:
         #    x = None
@@ -620,81 +616,119 @@ class Beam:
 
         return freq_id
 
-        # =============================================================================
-        # =============================================================================
-        #           compute_cylindricwave_beamformer
-        # =============================================================================
-        # =============================================================================
-
-        def compute_cylindricwave_beamformer(self, x0, y0, frequency, slowness, flip=True):
-            """
-            ## Description:
-                Compute the set of slowness and delay that will be used for beam projection
-                Assume plane wave propagation: exp(1j*2*pi*freq*(Sx*x + Sy*y))
-            ## Input:
-                x,y: (float) source position in the same unit as position
-                frequency: (float) frequency in Hz
-                slowness_max: (float) plane wave is computed for Sx and Sy slowness varying between [-slowness_max,slowness_max]
-                dimension: (int) number of slowness values in the range
-                flip: (bool) flip phase (default = True)
-            """
-            from numpy import abs
-            if self.use_gpu:
-                import cupy as cp
-                CMPLX = CMPLX_GPU
-            else:
-                import numpy as cp
-                CMPLX = 'complex128'
-
-
-            # compute phase shift only if needed
-            if self.cw_bf is None:
-                self.cw_bf = Cylindrical_wave_beamformer()
-
-            self.cw_bf.slowness = slowness
-            self.cw_bf.x0 = x0
-            self.cw_bf.y0 = y0
-
-            # outer product of (u,v) = dot(u,transpose(v))
-            # ravel: return a 1D vector from a 2D matrix
-            # return matrix of Sx*x
-            for s,_ in enumerate(slowness):
-                self.cw_bf.phase_x[s] = cp.outer(slowness[s], self.x-x0)
-                # return matrix of Sy*y
-                self.cw_bf.phase_y[s] = cp.outer(slowness[s], self.y-y0)
-
-
-
-            freq_id = abs(self.frequency - frequency).argmin()
-            frequency = self.frequency[freq_id]
-
-            angular_frequency = 2 * np.pi * frequency
-            if flip:
-                angular_frequency *= -1
-            shape=(len(slowness), )
-            self.cw_bf.beamformer = cp.ndarray(())
-            self.beamformer = cp.exp(1j * angular_frequency * (self.phase_x + self.phase_y)).astype(CMPLX)
-            self.beamformer_conj = self.beamformer ** (-1)
-
-            # if has_cupy and clean_gpu:
-            #    x = None
-            #    y = None
-            #    phase_x = None
-            #    phase_y = None
-            #    cp.get_default_memory_pool().free_all_blocks()
-
-            return freq_id
-
     # =============================================================================
-# =============================================================================
-#           compute_beam_projection
-# =============================================================================
-# =============================================================================
+    # =============================================================================
+    #           compute_cw_beamformer
+    # =============================================================================
+    # =============================================================================
 
-    def compute_beam_projection(self, time_id=0, freq_id=0, method='classic', epsilon=1e-10, rank=1, stack=False):
+    def compute_cw_beamformer(self, x0, y0, frequency, slowness, flip=True, use_meshgrid=False):
         """
         ## Description:
-        Compute the projection of the cross-spectral matrix on a reference beam for a given time window and a given frequency
+            Compute the set of slowness and delay that will be used for beam projection
+            Assume plane wave propagation: exp(1j*2*pi*freq*(Sx*x + Sy*y))
+        ## Input:
+            x0,y:0 (float) source position in the same unit as position
+            frequency: (float) frequency in Hz
+            slowness: (float) ndarray or one value,
+            dimension: (int) number of slowness values in the range
+            flip: (bool) flip phase (default = True)
+        """
+
+        from numpy import abs, asarray, ndarray, meshgrid, outer, exp, sqrt
+        if self.use_gpu:
+            import cupy as cp
+            FLOAT = FLOAT_GPU
+            CMPLX = CMPLX_GPU
+        else:
+            import numpy as cp
+            FLOAT = 'float32'
+            CMPLX = 'complex128'
+
+        id = 'CWBF'
+        # compute phase shift only if needed
+        self.bf = Cylindrical_wave_beamformer()
+
+        self.bf.slowness = asarray(slowness)
+        self.bf.n_slowness = len(slowness)
+        if use_meshgrid:
+            x0y0 = meshgrid(asarray(x0), asarray(y0))
+            x0 = x0y0[0].ravel()
+            y0 = x0y0[1].ravel()
+            self.bf.x0 = x0
+            self.bf.y0 = y0
+        else:
+            self.bf.x0 = x0
+            self.bf.y0 = y0
+        self.bf.n_source = len(x0)
+
+        # outer product of (u,v) = dot(u,transpose(v))
+        # ravel: return a 1D vector from a 2D matrix
+        # return matrix of Sx*x
+        phase_x = ndarray((len(x0), len(self.x)), dtype=FLOAT)
+        phase_y = ndarray((len(y0), len(self.y)), dtype=FLOAT)
+        for i, xx0 in enumerate(x0):
+            delta_x = xx0-self.x
+            delta_y = y0[i]-self.y
+            dist = sqrt(delta_x**2 +delta_y**2)
+            nx = delta_x/dist
+            ny = delta_y/dist
+            phase_x[i,:] = delta_x*nx
+            phase_y[i,:] = delta_y*ny
+        phase_x = phase_x.ravel()
+        phase_y = phase_y.ravel()
+
+        self.bf.phase_x = outer(self.bf.slowness, phase_x)
+        self.bf.phase_y = outer(self.bf.slowness, phase_y)
+
+        #dist = np.sqrt((self.x-x0)**2+(self.y-y0)**2)
+        #kx = slowness*(self.x-x0)/dist
+        #ky = slowness*(self.y-y0)/dist
+        #phase_x = np.outer(kx, self.x-x0)
+        #phase_y = np.outer(ky, self.y-y0)
+        #self.bf.phase_x = cp.ndarray((len(slowness),len(x0)*len(self.x)), dtype=FLOAT)
+        #self.bf.phase_y = cp.ndarray((len(slowness),len(y0)*len(self.y)), dtype=FLOAT)
+
+        #for i, s in enumerate(self.bf.slowness):
+        #    for j, x0 in enumerate(self.bf.x0):
+        #        self.bf.phase_x[i, j, :] = s * (self.x - x0)
+        #    for j, y0 in enumerate(self.bf.y0):
+        #        self.bf.phase_y[i, j, :] = s * (self.y - y0)
+
+
+
+        freq_id = abs(self.frequency - frequency).argmin()
+        frequency = self.frequency[freq_id]
+
+        angular_frequency = 2 * np.pi * frequency
+        if flip:
+            angular_frequency *= -1
+        beamformer = exp(1j * angular_frequency * (self.bf.phase_x + self.bf.phase_y)).astype(CMPLX)
+        self.bf.beamformer = cp.asarray(beamformer)
+        self.bf.beamformer_conj = self.bf.beamformer ** (-1)
+
+        self.bf.beamformer = self.bf.beamformer.reshape(len(slowness)*len(x0),len(self.x))
+        self.bf.beamformer_conj = self.bf.beamformer_conj.reshape(len(slowness) * len(x0), len(self.x))
+        # if has_cupy and clean_gpu:
+        #    x = None
+        #    y = None
+        #    phase_x = None
+        #    phase_y = None
+        #    cp.get_default_memory_pool().free_all_blocks()
+
+
+        return freq_id
+
+ # =============================================================================
+# =============================================================================
+#           compute_pw_beam_projection
+# =============================================================================
+# =============================================================================
+
+    def compute_pw_beam_projection(self, time_id=0, freq_id=0, method='classic', epsilon=1e-10, rank=1, stack=False):
+        """
+        ## Description:
+        Compute the projection of the cross-spectral matrix on a reference plane wave beam for a given time window and a given frequency
 
         ## Input:
             time_id: (int) time index for the cross-spectral matrix
@@ -720,13 +754,13 @@ class Beam:
         if method == 'classic':
             if has_cupy:
                 #print(type(self.xspec),self.xspec.dtype)
-                tmp = self.beamformer_conj @ self.xspec[time_id,freq_id] @ self.beamformer.T
+                tmp = self.bf.beamformer_conj @ self.xspec[time_id,freq_id] @ self.bf.beamformer.T
                 beam = cp.diag(tmp).real
             else:
-                beam = cp.ndarray((self.dimension**2,))
+                beam = cp.ndarray((self.bf.n_slowness**2,))
                 #wbar = waitbar('Projection',self.dimension**2)
-                for s in range(self.dimension**2):
-                    beam[s] = (self.beamformer_conj[s, :].dot(self.xspec[time_id,freq_id].dot(self.beamformer[s, :]))).real
+                for s in range(self.bf.n_slowness**2):
+                    beam[s] = (self.bf.beamformer_conj[s, :].dot(self.xspec[time_id,freq_id].dot(self.bf.beamformer[s, :]))).real
                     #wbar.progress(s)
 
         elif method == 'music':
@@ -737,34 +771,73 @@ class Beam:
             if has_cupy:
                 #eigenvectors = cp.array(eigenvectors)
                 xspec = eigenvectors @ eigenvalues @ cp.conj(eigenvectors.T)
-                tmp = self.beamformer_conj @ xspec @ self.beamformer.T
+                tmp = self.bf.beamformer_conj @ xspec @ self.bf.beamformer.T
                 beam = cp.diag(tmp).real + epsilon
                 beam = 1 / cp.abs(beam)
             else:
-                beam = cp.ndarray((self.dimension**2,))
+                beam = cp.ndarray((self.bf.n_slowness**2,))
                 xspec = eigenvectors @ eigenvalues @ cp.conj(eigenvectors.T)
-                for s in range(self.dimension ** 2):
-                    beam[s] = (self.beamformer_conj[s, :].dot(xspec.dot(self.beamformer[s, :])).real)
+                for s in range(self.bf.n_slowness ** 2):
+                    beam[s] = (self.bf.beamformer_conj[s, :].dot(xspec.dot(self.bf.beamformer[s, :])).real)
                     beam[s] = 1 / cp.abs(beam[s] + epsilon)
 
         elif method == 'mvdr':
             if has_cupy:
                 xspec_inv = inv(self.xspec[time_id,freq_id]+cp.eye(self.ntrace)*0.01)
-                tmp = self.beamformer_conj @ xspec_inv @ self.beamformer.T
+                tmp = self.bf.beamformer_conj @ xspec_inv @ self.bf.beamformer.T
                 beam = cp.diag(tmp).real #+ epsilon
                 beam = 1 / cp.abs(beam)
             else:
-                beam = cp.ndarray((self.dimension**2,))
+                beam = cp.ndarray((self.bf.n_slowness**2,))
                 xspec_inv = inv(self.xspec[time_id, freq_id]+cp.eye(self.ntrace)*0.01)
-                for s in range(self.dimension**2):
-                    beam[s] = 1./(self.beamformer_conj[s, :].dot(xspec_inv.dot(self.beamformer[s, :]))).real+epsilon
+                for s in range(self.bf.n_slowness**2):
+                    beam[s] = 1./(self.bf.beamformer_conj[s, :].dot(xspec_inv.dot(self.bf.beamformer[s, :]))).real+epsilon
 
         if stack and self.beam is not None:
             self.beam += beam
         else:
             self.beam = beam
+
         self.time_id = time_id
-# =============================================================================
+
+    # =============================================================================
+    # =============================================================================
+    #           compute_cw_beam_projection
+    # =============================================================================
+    # =============================================================================
+
+    def compute_cw_beam_projection(self, time_id=0, freq_id=0, method='classic', epsilon=1e-10, rank=1,
+                                       stack=False):
+        if self.use_gpu:
+            import cupy as cp
+            has_cupy = True
+            from cupy.linalg import svd, inv
+        else:
+            import numpy as cp
+            has_cupy = False
+            from numpy.linalg import svd, inv
+
+        if method == 'classic':
+            if has_cupy:
+                # print(type(self.xspec),self.xspec.dtype)
+                tmp = self.bf.beamformer_conj @ self.xspec[time_id, freq_id] @ self.bf.beamformer.T
+                beam = cp.diag(tmp).real
+            else:
+                beam = cp.ndarray((self.bf.n_slowness,self.bf.n_source))
+                # wbar = waitbar('Projection',self.dimension**2)
+                for s in range(self.bf.n_slowness ** 2):
+                    beam[s] = (self.bf.beamformer_conj[s, :].dot(
+                        self.xspec[time_id, freq_id].dot(self.bf.beamformer[s, :]))).real
+                    # wbar.progress(s)
+
+        if stack and self.beam is not None:
+            self.beam += beam
+        else:
+            self.beam = beam
+
+        self.time_id = time_id
+
+    # =============================================================================
 # =============================================================================
 #           compute_XY_beam_projection
 # =============================================================================
@@ -870,12 +943,12 @@ class Beam:
             
 # =============================================================================
 # =============================================================================
-#           pcolormesh
+#           pw_pcolormesh
 # =============================================================================
 # =============================================================================
-    def pcolormesh(self, ax, colorbar=False, scale=True, **kwargs):
+    def pw_pcolormesh(self, ax, colorbar=False, scale=True, **kwargs):
         """
-
+        plot result of plane wave beam forming
         """
         if self.use_gpu:
             has_cupy = True
@@ -887,12 +960,12 @@ class Beam:
 
         if has_cupy:
             beam = self.beam.get()
-            slowness = self.slowness.get()
+            slowness = self.bf.slowness.get()
         else:
             beam=self.beam
-            slowness = self.slowness
+            slowness = self.bf.slowness
 
-        beam = np.reshape(beam, (self.dimension, self.dimension))
+        beam = np.reshape(beam, (self.bf.n_slowness, self.bf.n_slowness))
         beam = np.rot90(beam, 2)
         if scale:
             beam = (beam - beam.min()) / (beam.max() - beam.min())
@@ -918,12 +991,60 @@ class Beam:
         if colorbar:
             plt.colorbar(mappable=img)
 
+    # =============================================================================
+    # =============================================================================
+    #           cw_pcolormesh
+    # =============================================================================
+    # =============================================================================
+    def cw_pcolormesh(self, ax, colorbar=False, scale=True, **kwargs):
+        """
+        plot result of cylindrical wave beam forming
+        """
+        if self.use_gpu:
+            has_cupy = True
+        else:
+            has_cupy = False
+
+        import numpy as np
+        import matplotlib.pyplot as plt
+
+        if has_cupy:
+            beam = self.beam.get()
+        else:
+            beam = self.beam
+
+        beam = np.reshape(beam, (self.bf.n_slowness, self.bf.n_source))
+        if scale:
+            beam = (beam - beam.min()) / (beam.max() - beam.min())
+            vmin = 0.
+            vmax = 1.
+        else:
+            vmin = beam.min() ** 2
+            vmax = beam.max() ** 2
+        kwargs = {**kwargs, **dict(rasterized=True, vmin=vmin, vmax=vmax)}
+        img = ax.pcolormesh(np.asarray(range(0,self.bf.n_source)), self.bf.slowness,
+                            beam ** 2, shading='auto', **kwargs)
+        ax.set_aspect('auto')
+        xlim = ax.get_xlim()
+        ylim = ax.get_ylim()
+        grid_style = dict(lw=0.3, dashes=[6, 4], c='w')
+        #ax.plot(2 * [0], xlim, **grid_style)
+        #ax.plot(ylim, 2 * [0], **grid_style)
+        #ax.plot(xlim, ylim, **grid_style)
+        #ax.plot(xlim, [-y for y in ylim], **grid_style)
+        ax.set_xticks([xlim[0], xlim[0] / 2, 0, xlim[-1] / 2, xlim[-1]])
+        ax.set_yticks([ylim[0], ylim[0] / 2, 0, ylim[-1] / 2, ylim[-1]])
+        ax.set_title('[%.1f-%.1f]sec' % (self.wtime[self.time_id],
+                                         self.wtime[self.time_id] + self.wlen))
+        if colorbar:
+            plt.colorbar(mappable=img)
+
 # =============================================================================
 # =============================================================================
 #           compute_plane_wave_synthetic_crossspectral_matrix
 # =============================================================================
 # =============================================================================
-    def compute_plane_wave_synthetic_crossspectral_matrix(self, freq, slowness, azimuth,mx=None):
+    def compute_pw_synthetic_crossspectral_matrix(self, freq, slowness, azimuth,mx=None):
         """
 
         :param freq:
@@ -932,12 +1053,8 @@ class Beam:
         :return:
         """
         if self.use_gpu:
-            try:  # cupy
-                import cupy as cp
-                from scipy.linalg import circulant
-            except:
-                import numpy as cp
-                from scipy.linalg import circulant
+            import cupy as cp
+            from scipy.linalg import circulant
         else:
             import numpy as cp
             from scipy.linalg import circulant
@@ -964,6 +1081,53 @@ class Beam:
         self.xspec = (wavefield * wavefield.conj()[:, None]) * cc
         self.xspec = self.xspec[None, None, :,:]
 
+    # =============================================================================
+    # =============================================================================
+    #           compute_cw_synthetic_crossspectral_matrix
+    # =============================================================================
+    # =============================================================================
+    def compute_cw_synthetic_crossspectral_matrix(self, freq, slowness, x0, y0, mx=None):
+        """
+
+        :param freq:
+        :param slowness:
+        :param azimuth:
+        :return:
+        """
+
+
+        if self.use_gpu:
+            import cupy as cp
+            from scipy.linalg import circulant
+        else:
+            import numpy as cp
+        import numpy as np
+
+        # Phase
+        wavenumber = 2 * cp.pi * freq * slowness
+
+        dist = np.sqrt((self.x-x0)**2+(self.y-y0)**2)
+        kx = slowness*(self.x-x0)/dist
+        ky = slowness*(self.y-y0)/dist
+        phase_x = np.outer(kx, self.x-x0)
+        phase_y = np.outer(ky, self.y-y0)
+        # Wavefield
+        wavefield = np.exp(-1j * wavenumber * (phase_x+phase_y))
+
+        # spatial smoothing
+        if mx is not None:
+            c = np.zeros((self.ntrace,))
+            nx = int((mx - 1) / 2)
+            c[0:nx + 1] = 1.
+            c[-nx:] = 1.
+            cc = np.asarray(circulant(c))
+            # cc = cc[:, :, None]
+        else:
+            cc = 1.
+        # cross-spectra
+        self.xspec = (wavefield * wavefield.conj()) * cc
+        self.xspec = self.xspec[None, None, :, :]
+        self.xspec = cp.array(self.xspec)
 
 
 
