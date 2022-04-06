@@ -255,7 +255,8 @@ class Beam:
 # =============================================================================
 # =============================================================================
 
-    def compute_crossspectral_matrix(self, segment_duration_sec, freq_min, freq_max, step = 1., average=10, overlap=0.5, mx=None):
+    def compute_crossspectral_matrix(self, segment_duration_sec, freq_min, freq_max, 
+                                     step = 1., average=10, overlap=0.5, mx=None):
         """
         ## Description
             Compute the cross-spectral matrix on moving time window
@@ -268,7 +269,7 @@ class Beam:
             freq_min: (float)
             freq_max: (float)
             average:  (int) cross spectrum computed over 'average' time windows
-            overlap: (float) overlap between consecutive averaged windows
+            overlap: (int) overlap between consecutive average is 'overlap' time window
             mx: (int) compute xspec on the mx first neighbors only, default=None, compute cross-spectrum on all neighbors
 
         Note: numpy code source inspired or copied from covnet by leonard Seydoux
@@ -351,13 +352,13 @@ class Beam:
         # 
         if average>n_windows:
             average = n_windows
-        overlap = int(average * overlap)
+        overlap = int(overlap)
 
         # Times ??
         t_end = times[-1]
         times = times[:-1]
         times = times[:1 - average:overlap]
-        self.wlen *= average
+        #self.wlen *= average
         n_average = len(times)
         #times = np.hstack((times, t_end))
 
@@ -681,22 +682,6 @@ class Beam:
         self.bf.phase_x = outer(self.bf.slowness, phase_x)
         self.bf.phase_y = outer(self.bf.slowness, phase_y)
 
-        #dist = np.sqrt((self.x-x0)**2+(self.y-y0)**2)
-        #kx = slowness*(self.x-x0)/dist
-        #ky = slowness*(self.y-y0)/dist
-        #phase_x = np.outer(kx, self.x-x0)
-        #phase_y = np.outer(ky, self.y-y0)
-        #self.bf.phase_x = cp.ndarray((len(slowness),len(x0)*len(self.x)), dtype=FLOAT)
-        #self.bf.phase_y = cp.ndarray((len(slowness),len(y0)*len(self.y)), dtype=FLOAT)
-
-        #for i, s in enumerate(self.bf.slowness):
-        #    for j, x0 in enumerate(self.bf.x0):
-        #        self.bf.phase_x[i, j, :] = s * (self.x - x0)
-        #    for j, y0 in enumerate(self.bf.y0):
-        #        self.bf.phase_y[i, j, :] = s * (self.y - y0)
-
-
-
         freq_id = abs(self.frequency - frequency).argmin()
         frequency = self.frequency[freq_id]
 
@@ -707,8 +692,8 @@ class Beam:
         self.bf.beamformer = cp.asarray(beamformer)
         self.bf.beamformer_conj = self.bf.beamformer ** (-1)
 
-        self.bf.beamformer = self.bf.beamformer.reshape(len(slowness)*len(x0),len(self.x))
-        self.bf.beamformer_conj = self.bf.beamformer_conj.reshape(len(slowness) * len(x0), len(self.x))
+        #self.bf.beamformer = self.bf.beamformer.reshape(len(slowness)*len(x0),len(self.x))
+        #self.bf.beamformer_conj = self.bf.beamformer_conj.reshape(len(slowness) * len(x0), len(self.x))
         # if has_cupy and clean_gpu:
         #    x = None
         #    y = None
@@ -819,15 +804,22 @@ class Beam:
 
         if method == 'classic':
             if has_cupy:
-                # print(type(self.xspec),self.xspec.dtype)
-                tmp = self.bf.beamformer_conj @ self.xspec[time_id, freq_id] @ self.bf.beamformer.T
-                beam = cp.diag(tmp).real
+                beam = cp.zeros((self.bf.n_slowness, self.bf.n_source))
+                for s in range(self.bf.n_slowness):
+                    LHS = self.bf.beamformer_conj[s].reshape(self.bf.n_source,self.ntrace)
+                    RHS = self.bf.beamformer[s].reshape(self.bf.n_source,self.ntrace)
+                    beam[s] = cp.diag((LHS @ self.xspec[time_id, freq_id] @ RHS.T).real)
+
             else:
-                beam = cp.ndarray((self.bf.n_slowness,self.bf.n_source))
+                beam = cp.zeros((self.bf.n_slowness,self.bf.n_source))
                 # wbar = waitbar('Projection',self.dimension**2)
-                for s in range(self.bf.n_slowness ** 2):
-                    beam[s] = (self.bf.beamformer_conj[s, :].dot(
-                        self.xspec[time_id, freq_id].dot(self.bf.beamformer[s, :]))).real
+                for s in range(self.bf.n_slowness):
+                    LHS = self.bf.beamformer_conj[s].reshape(self.bf.n_source,self.ntrace)
+                    RHS = self.bf.beamformer[s].reshape(self.bf.n_source,self.ntrace)
+                    for src in range(self.bf.n_source):
+                        beam[s,src] = (LHS[src] @ self.xspec[time_id, freq_id] @ RHS[src]).real
+                    
+                    #beam[s] = cp.diag((LHS @ self.xspec[time_id, freq_id] @ RHS.T).real)
                     # wbar.progress(s)
 
         if stack and self.beam is not None:
@@ -1032,8 +1024,10 @@ class Beam:
         #ax.plot(ylim, 2 * [0], **grid_style)
         #ax.plot(xlim, ylim, **grid_style)
         #ax.plot(xlim, [-y for y in ylim], **grid_style)
-        ax.set_xticks([xlim[0], xlim[0] / 2, 0, xlim[-1] / 2, xlim[-1]])
-        ax.set_yticks([ylim[0], ylim[0] / 2, 0, ylim[-1] / 2, ylim[-1]])
+        #ax.set_xticks([xlim[0], xlim[0] / 2, 0, xlim[-1] / 2, xlim[-1]])
+        #ax.set_yticks([ylim[0], ylim[0] / 2, 0, ylim[-1] / 2, ylim[-1]])
+        plt.xlabel('Index source position')
+        plt.ylabel('slowness')
         ax.set_title('[%.1f-%.1f]sec' % (self.wtime[self.time_id],
                                          self.wtime[self.time_id] + self.wlen))
         if colorbar:
@@ -1104,15 +1098,15 @@ class Beam:
         import numpy as np
 
         # Phase
-        wavenumber = 2 * cp.pi * freq * slowness
+        angular_frequency = 2 * cp.pi * freq 
 
         dist = np.sqrt((self.x-x0)**2+(self.y-y0)**2)
         kx = slowness*(self.x-x0)/dist
         ky = slowness*(self.y-y0)/dist
-        phase_x = np.outer(kx, self.x-x0)
-        phase_y = np.outer(ky, self.y-y0)
+        phase_x = kx*(self.x-x0)
+        phase_y = ky*(self.y-y0)
         # Wavefield
-        wavefield = np.exp(-1j * wavenumber * (phase_x+phase_y))
+        wavefield = np.exp(-1j * angular_frequency * (phase_x+phase_y))
 
         # spatial smoothing
         if mx is not None:
@@ -1125,7 +1119,7 @@ class Beam:
         else:
             cc = 1.
         # cross-spectra
-        self.xspec = (wavefield * wavefield.conj()) * cc
+        self.xspec = np.outer(wavefield,wavefield.conj()) * cc
         self.xspec = self.xspec[None, None, :, :]
         self.xspec = cp.array(self.xspec)
 
