@@ -569,7 +569,7 @@ class Beam:
 # =============================================================================
 
     def compute_pw_beam_projection(self, time_id=0, freq_id=0, method='classic',
-                                   comp = None, epsilon=1e-10, rank=1, stack=False):
+                                   comp=None, RT=None, epsilon=1e-10, rank=1, stack=False):
         """
         ## Description:
         Compute the projection of the cross-spectral matrix on a reference plane wave beam for a given time window and a given frequency
@@ -579,6 +579,7 @@ class Beam:
             freq_id: (int) frequency index for the cross -sptral matrix
             method: (str) 'classic' or 'music' (default is classic)
             comp: (str) data component to be processed, default=None, first data in list is processed
+            RT: (str) whether to project Radial-transverse components or not. Values are: None, 'R_x', 'R_y', 'T_x', 'T_y'
             epsilon: (float) threshold for music method, default is 1.e-10
             rank: (int) keep rank singular values in svd decomposition
             stack: (bool) stack projection between successive calls (default = False)
@@ -599,6 +600,8 @@ class Beam:
         #if no component specified, take the first
         if comp is None:
             icomp = 0
+        elif comp in self.datas:
+            icomp = list(self.datas.keys()).index(comp)
 
         if method == 'classic':
             if has_cupy:
@@ -655,7 +658,7 @@ class Beam:
     # =============================================================================
     # =============================================================================
 
-    def compute_cw_beam_projection(self, time_id=0, freq_id=0, comp=None, method='classic', epsilon=1e-10, rank=1,
+    def compute_cw_beam_projection(self, time_id=0, freq_id=0,  method='classic', comp=None,
                                        stack=False):
         if self.use_gpu:
             import cupy as cp
@@ -669,6 +672,8 @@ class Beam:
         #if no component specified, take the first
         if comp is None:
             icomp = 0
+        elif comp in self.datas:
+            icomp = list(self.datas.keys()).index(comp)
 
         if method == 'classic':
             if has_cupy:
