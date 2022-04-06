@@ -105,6 +105,7 @@ class Beam:
         self.xspec = None   # 4D array of cross-spectra [time, freq, nstat, nstat]
         self.wtime = None   # time of moving windows
         self.wlen = None    # duration (sec) of a moving window
+
         self.bf = Beamformer() # reference wave wo project on (plane, cylindrical, etc)
         self.beam = None    # result of beamforming
 
@@ -834,7 +835,7 @@ class Beam:
 #           compute_XY_beam_projection
 # =============================================================================
 # =============================================================================
-    def compute_XY_beam_projection(self, time_id=0, freq_id=0, method='classic', comp='radial', epsilon=1e-10, rank=1, stack=False):
+    def compute_pw_XY_beam_projection(self, time_id=0, freq_id=0, method='classic', comp='radial', epsilon=1e-10, rank=1, stack=False):
         """
         ## Description:
         Compute the projection of the cross-spectral matrix on a reference beam for a given time window and a given frequency
