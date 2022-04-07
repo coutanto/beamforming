@@ -36,10 +36,10 @@ class Plane_wave_beamformer(Beamformer):
         super().__init__()
         self.slowness_grid = None # slowness grid as a meshgrid
         self.slowness_abs = None
-        self.X_radial = None #coeff. used to performed radial/transverse beamforming on 2 components data
-        self.Y_radial = None
-        self.X_tang = None
-        self.Y_tang = None
+        #self.X_radial = None #coeff. used to performed radial/transverse beamforming on 2 components data
+        #self.Y_radial = None
+        #self.X_tang = None
+        #self.Y_tang = None
         self.id = 'PWBF'
 
 class Cylindrical_wave_beamformer(Beamformer):
@@ -276,10 +276,15 @@ class Beam:
         n_windows = len(times)
         self.wlen = len_seg*self.dt
 
-        # Frequency
+        # FFT Frequency range
         n_frequencies = int(nfft/2+1) #see rfft doc
         df = 1./(self.dt*nfft)
         self.frequency = np.arange(0, n_frequencies)*df
+        
+        # Xspec frequency range
+        freq_keep = (self.frequency > freq_min) & (self.frequency < freq_max)
+        self.frequency = self.frequency[freq_keep]
+        n_used_frequencies = len(self.frequency)
 
         self.xspec = []
         #loop on data, one may have one or more components
@@ -320,10 +325,7 @@ class Beam:
             # compute cross-spectral matrix
             # =========================================================================
 
-            # select frequencies
-            freq_keep = (self.frequency > freq_min) & (self.frequency < freq_max)
-            self.frequency = self.frequency[freq_keep]
-            n_frequencies = len(self.frequency)
+            # keep used frequencies
             spectra = spectra[..., freq_keep].copy()
 
             #
@@ -337,7 +339,8 @@ class Beam:
             # Times ??
             t_end = times[-1]
             times = times[:-1]
-            times = times[:1 - average:overlap]
+            if average>1:
+                times = times[:1 - average:overlap]
             #self.wlen *= average
             n_average = len(times)
             #times = np.hstack((times, t_end))
@@ -355,7 +358,7 @@ class Beam:
                 cc=1.
 
             # Initialization
-            xspec_shape = (n_average, self.ntrace, self.ntrace, n_frequencies)
+            xspec_shape = (n_average, self.ntrace, self.ntrace, n_used_frequencies)
             xspec = cp.zeros(xspec_shape, dtype=CMPLX)
             wbar = waitbar('Cross-spectra', n_average)
             for wid in range(n_average):
@@ -439,6 +442,8 @@ class Beam:
             self.bf.phase_y = cp.outer(self.bf.slowness_grid[1].ravel(), cp.array(self.y))
 
             # component of normalized vector along ray direction (K_x,K_y) = (Nx,N_y) * 2*pi*f/slowness
+            #self.bf.N_x = cp.zeros((dimension**2,))
+            #self.bf.N_y = cp.ones((dimension**2,))
             self.bf.N_x = self.bf.slowness_grid[0].ravel() / self.bf.slowness_abs
             self.bf.N_y = self.bf.slowness_grid[1].ravel() / self.bf.slowness_abs
 
@@ -572,13 +577,14 @@ class Beam:
                                    comp=None, RT=None, epsilon=1e-10, rank=1, stack=False):
         """
         ## Description:
-        Compute the projection of the cross-spectral matrix on a reference plane wave beam for a given time window and a given frequency
+            Compute the projection of the cross-spectral matrix on a reference plane wave beam for a
+            given time window and a given frequency
 
         ## Input:
             time_id: (int) time index for the cross-spectral matrix
             freq_id: (int) frequency index for the cross -sptral matrix
             method: (str) 'classic' or 'music' (default is classic)
-            comp: (str) data component to be processed, default=None, first data in list is processed
+            comp: (str) data component to be processed, default is None = first data in list is processed
             RT: (str) whether to project Radial-transverse components or not. Values are: None, 'R_x', 'R_y', 'T_x', 'T_y'
             epsilon: (float) threshold for music method, default is 1.e-10
             rank: (int) keep rank singular values in svd decomposition
@@ -603,7 +609,10 @@ class Beam:
         elif comp in self.datas:
             icomp = list(self.datas.keys()).index(comp)
 
-        if method == 'classic':
+        coef = {'R_x': self.bf.N_x, 'R_y': self.bf.N_y, 'T_x': self.bf.N_y, 'T_y': self.bf.N_x}
+
+# ---------------------------------------- CLASSIC 1C --------------------------
+        if method == 'classic' and RT is None:
             if has_cupy:
                 #print(type(self.xspec),self.xspec.dtype)
                 tmp = self.bf.beamformer_conj @ self.xspec[icomp][time_id,freq_id] @ self.bf.beamformer.T
@@ -614,8 +623,8 @@ class Beam:
                 for s in range(self.bf.n_slowness**2):
                     beam[s] = (self.bf.beamformer_conj[s, :].dot(self.xspec[icomp][time_id,freq_id].dot(self.bf.beamformer[s, :]))).real
                     #wbar.progress(s)
-
-        elif method == 'music':
+# ---------------------------------------- MUSIC 1C --------------------------
+        elif method == 'music' and RT is None:
             eigenvectors, eigenvalues, _ = svd(self.xspec[icomp][time_id, freq_id])
             eigenvalues[:rank] = 0.0
             eigenvalues[rank:] = 1.0
@@ -633,6 +642,47 @@ class Beam:
                     beam[s] = (self.bf.beamformer_conj[s, :].dot(xspec.dot(self.bf.beamformer[s, :])).real)
                     beam[s] = 1 / cp.abs(beam[s] + epsilon)
 
+# ---------------------------------------- CLASSIC RT --------------------------
+        elif method == 'classic' and RT is not None:
+            if RT not in coef:
+                raise ValueError('wrong RT argument, must be one of R_x,R_y, T_x or T_y')
+
+            if has_cupy:
+                #Coef is a vector of n_slowness**2 coefficient
+                #but each coef must be multiply on each of the ntrace
+                M=cp.outer(cp.ones((self.ntrace,1)),coef[RT])     
+                tmp = (M*self.bf.beamformer_conj) @ self.xspec[icomp][time_id,freq_id] @ (M*self.bf.beamformer).T
+                beam = cp.diag(tmp).real
+            else:
+                beam = cp.ndarray((self.bf.n_slowness**2,))
+                #wbar = waitbar('Projection',self.dimension**2)
+                for s in range(self.bf.n_slowness**2):
+                    beam[s] = (self.bf.beamformer_conj[s, :].dot(self.xspec[icomp][time_id,freq_id].dot(self.bf.beamformer[s, :]))).real * \
+                        coef[RT][s]*coef[RT][s]
+                    #wbar.progress(s)
+
+# ---------------------------------------- MUSIC RT --------------------------
+        elif method == 'music' and RT is not None:
+            if RT not in coef:
+                raise ValueError('wrong RT argument, must be one of R_x,R_y, T_x or T_y')
+            eigenvectors, eigenvalues, _ = svd(self.xspec[icomp][time_id, freq_id])
+            eigenvalues[:rank] = 0.0
+            eigenvalues[rank:] = 1.0
+            eigenvalues = cp.diag(eigenvalues)
+            if has_cupy:
+                M=cp.outer(cp.ones((self.ntrace,1)),coef[RT])  
+                xspec = eigenvectors @ eigenvalues @ cp.conj(eigenvectors.T)
+                tmp = (M*self.bf.beamformer_conj) @ xspec @ (M*self.bf.beamformer).T
+                beam = cp.diag(tmp).real + epsilon
+                beam = 1 / cp.abs(beam)
+            else:
+                beam = cp.ndarray((self.bf.n_slowness**2,))
+                xspec = eigenvectors @ eigenvalues @ cp.conj(eigenvectors.T)
+                for s in range(self.bf.n_slowness ** 2):
+                    beam[s] = (self.bf.beamformer_conj[s, :].dot(xspec.dot(self.bf.beamformer[s, :])).real)
+                    beam[s] = 1 / cp.abs(beam[s]*coef[RT][s]*coef[RT][s] + epsilon)
+
+# ---------------------------------------- MUSIC RT --------------------------
         elif method == 'mvdr':
             if has_cupy:
                 xspec_inv = inv(self.xspec[icomp][time_id,freq_id]+cp.eye(self.ntrace)*0.01)
@@ -659,7 +709,31 @@ class Beam:
     # =============================================================================
 
     def compute_cw_beam_projection(self, time_id=0, freq_id=0,  method='classic', comp=None,
-                                       stack=False):
+                                    RT=None, stack=False):
+        """
+        ## Description:
+            Compute the projection of the cross-spectral matrix on a reference cylindrical wave beam for a
+            given time window and a given frequency
+
+        ## Input:
+            time_id: (int) time index for the cross-spectral matrix
+            freq_id: (int) frequency index for the cross -sptral matrix
+            method: (str) 'classic' or 'music' (default is classic)
+            comp: (str) data component to be processed, default is None = first data in list is processed
+            RT: (str) whether to project Radial-transverse components or not. Values are: None, 'R_x', 'R_y', 'T_x', 'T_y'
+                if RT is None, perform a 1 Component cylindrical beamforming
+                if RT is R_x or R_y, perform a projection on the radial component using the east (R_x) or north (R_y)
+                component. The projections of R_x and R_y must be done consecutively with the stack argument set to True
+                if RT is T_x or T_z, same as above but for transverse component
+            epsilon: (float) threshold for music method, default is 1.e-10
+            rank: (int) keep rank singular values in svd decomposition
+            stack: (bool) stack projection between successive calls (default = False)
+        ## Return:
+            nothing, Beam.beam is written
+        """
+        # RT specifies which component we are processing
+        #
+        #
         if self.use_gpu:
             import cupy as cp
             has_cupy = True
@@ -674,8 +748,10 @@ class Beam:
             icomp = 0
         elif comp in self.datas:
             icomp = list(self.datas.keys()).index(comp)
+        coef = {'R_x': self.bm.N_x, 'R_y': self.bm.N_y, 'T_x': -self.bm.N_y, 'T_y': self.bm.N_x}
 
-        if method == 'classic':
+# ---------------------------------------- CLASSIC 1C --------------------------
+        if method == 'classic' and RT is None:
             if has_cupy:
                 beam = cp.zeros((self.bf.n_slowness, self.bf.n_source))
                 for s in range(self.bf.n_slowness):
@@ -685,15 +761,31 @@ class Beam:
 
             else:
                 beam = cp.zeros((self.bf.n_slowness,self.bf.n_source))
-                # wbar = waitbar('Projection',self.dimension**2)
                 for s in range(self.bf.n_slowness):
                     LHS = self.bf.beamformer_conj[s].reshape(self.bf.n_source,self.ntrace)
                     RHS = self.bf.beamformer[s].reshape(self.bf.n_source,self.ntrace)
                     for src in range(self.bf.n_source):
                         beam[s,src] = (LHS[src] @ self.xspec[icomp][time_id, freq_id] @ RHS[src]).real
-                    
-                    #beam[s] = cp.diag((LHS @ self.xspec[time_id, freq_id] @ RHS.T).real)
-                    # wbar.progress(s)
+
+# ---------------------------------------- CLASSIC RT --------------------------
+        if method =='classic' and RT is not None:
+            if RT not in coef:
+                raise ValueError('wrong RT argument, must be one of R_x,R_y, T_x or T_y')
+
+        if has_cupy:
+            beam = cp.zeros((self.bf.n_slowness, self.bf.n_source))
+            for s in range(self.bf.n_slowness):
+                LHS = self.bf.beamformer_conj[s].reshape(self.bf.n_source, self.ntrace)
+                RHS = self.bf.beamformer[s].reshape(self.bf.n_source, self.ntrace)
+                beam[s] = cp.diag((LHS @ self.xspec[icomp][time_id, freq_id] @ RHS.T).real)
+
+        else:
+            beam = cp.zeros((self.bf.n_slowness, self.bf.n_source))
+            for s in range(self.bf.n_slowness):
+                LHS = self.bf.beamformer_conj[s].reshape(self.bf.n_source, self.ntrace)
+                RHS = self.bf.beamformer[s].reshape(self.bf.n_source, self.ntrace)
+                for src in range(self.bf.n_source):
+                    beam[s, src] = (LHS[src] @ self.xspec[icomp][time_id, freq_id] @ RHS[src]).real
 
         if stack and self.beam is not None:
             self.beam += beam
